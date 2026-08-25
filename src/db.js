@@ -381,6 +381,36 @@ async function verifyStudentName(fullName) {
   return Boolean(data);
 }
 
+async function getStudentProfileByName(fullName) {
+  const normalized = normalizeStudentName(fullName);
+  if (!normalized) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from('students')
+    .select('full_name, contact_number')
+    .eq('full_name', normalized)
+    .maybeSingle();
+
+  if (error) {
+    const mapped = mapStudentsSchemaError(error);
+    if (mapped) {
+      throw mapped;
+    }
+    throw error;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  return {
+    fullName: data.full_name,
+    contactNumber: data.contact_number || ''
+  };
+}
+
 async function listStudents() {
   const { data, error } = await supabase
     .from('students')
@@ -916,6 +946,7 @@ module.exports = {
   getTripsByIds,
   listStudentBookingsByDates,
   verifyStudentName,
+  getStudentProfileByName,
   listStudents,
   createStudent,
   updateStudent,

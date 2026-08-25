@@ -61,6 +61,29 @@ body {
   gap: 8px;
 }
 
+.student-info {
+  border: 1px solid #dbe5ef;
+  border-radius: 10px;
+  background: #f7fafc;
+  padding: 8px 10px;
+  display: grid;
+  gap: 2px;
+}
+
+.student-info-label {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.student-info-value {
+  font-size: 0.9rem;
+  color: #0f172a;
+  font-weight: 600;
+}
+
 .confirm-day-row {
   border: 1px solid #e4ebf2;
   border-radius: 10px;
@@ -264,6 +287,12 @@ body {
   gap: 12px;
 }
 
+.hero-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .view-selections-btn {
   border: 1px solid #111827;
   background: #111827;
@@ -274,6 +303,22 @@ body {
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+}
+
+.student-logout-btn {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #111827;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.student-logout-btn:hover {
+  background: #f8fafc;
 }
 
 .logo {
@@ -786,6 +831,10 @@ button {
     align-items: flex-start;
   }
 
+  .hero-actions {
+    width: 100%;
+  }
+
   .day-head {
     align-items: start;
     flex-direction: column;
@@ -851,6 +900,17 @@ button {
   }
 
   .view-selections-btn {
+    width: 100%;
+  }
+
+  .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .student-logout-btn {
     width: 100%;
   }
 }

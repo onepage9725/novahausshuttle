@@ -2,11 +2,14 @@ const weeklyList = document.getElementById('weeklyList');
 const messageEl = document.getElementById('message');
 const proceedBtn = document.getElementById('proceedBtn');
 const viewSelectionsBtn = document.getElementById('viewSelectionsBtn');
+const studentLogoutBtn = document.getElementById('studentLogoutBtn');
 const selectedModal = document.getElementById('selectedModal');
 const closeSelectedModalBtn = document.getElementById('closeSelectedModalBtn');
 const selectedRows = document.getElementById('selectedRows');
+const selectedStudentInfo = document.getElementById('selectedStudentInfo');
 const confirmModal = document.getElementById('confirmModal');
 const confirmSummary = document.getElementById('confirmSummary');
+const confirmStudentInfo = document.getElementById('confirmStudentInfo');
 const confirmBackBtn = document.getElementById('confirmBackBtn');
 const confirmSubmitBtn = document.getElementById('confirmSubmitBtn');
 const confirmMessage = document.getElementById('confirmMessage');
@@ -29,6 +32,7 @@ const submittedTripsByKey = new Map();
 const editableDates = new Set();
 const weekTripsCache = new Map();
 let currentStudentName = '';
+let currentStudentContact = '';
 let activeWeekDates = [];
 let currentWeekDays = [];
 let submittedWeekLoaded = false;
@@ -138,10 +142,37 @@ async function verifyStudent(fullName) {
   if (!response.ok) {
     throw new Error(payload.error || 'Student verification failed.');
   }
+
+  return payload.student || { fullName, contactNumber: '' };
 }
 
-function setStudentAccess(fullName) {
-  currentStudentName = fullName;
+function renderStudentInfo() {
+  const safeName = currentStudentName || '-';
+  const safeContact = currentStudentContact || '-';
+  [confirmStudentInfo, selectedStudentInfo].forEach((container) => {
+    if (!container) {
+      return;
+    }
+
+    container.innerHTML = '';
+
+    const label = document.createElement('div');
+    label.className = 'student-info-label';
+    label.textContent = 'Student Details';
+
+    const value = document.createElement('div');
+    value.className = 'student-info-value';
+    value.textContent = `${safeName} | ${safeContact}`;
+
+    container.appendChild(label);
+    container.appendChild(value);
+  });
+}
+
+function setStudentAccess(student) {
+  currentStudentName = String(student.fullName || '').trim();
+  currentStudentContact = String(student.contactNumber || '').trim();
+  renderStudentInfo();
   studentGate.classList.add('hidden');
 }
 
@@ -798,13 +829,21 @@ async function confirmAndSubmitSelectedTrips() {
 
 async function initStudentGate() {
   currentStudentName = '';
+  currentStudentContact = '';
   submittedTripsByKey.clear();
   selectedTripsByKey.clear();
   skippedDates.clear();
   editableDates.clear();
+  closeSelectedModal();
+  closeConfirmModal();
+  clearWeek();
+  currentWeekDays = [];
+  activeWeekDates = [];
   submittedWeekLoaded = false;
+  renderStudentInfo();
   studentNameInput.value = '';
   setGateMessage('');
+  setMessage('');
   studentGate.classList.remove('hidden');
 }
 
@@ -834,8 +873,8 @@ studentNameSubmit.addEventListener('click', async () => {
   }
 
   try {
-    await verifyStudent(fullName);
-    setStudentAccess(fullName);
+    const student = await verifyStudent(fullName);
+    setStudentAccess(student);
     setGateMessage('Verified.', 'success');
     await loadWeekTrips();
   } catch (error) {
@@ -856,6 +895,10 @@ proceedBtn.addEventListener('click', () => {
 
 viewSelectionsBtn.addEventListener('click', () => {
   openSelectedModal();
+});
+
+studentLogoutBtn.addEventListener('click', () => {
+  void initStudentGate();
 });
 
 closeSelectedModalBtn.addEventListener('click', () => {

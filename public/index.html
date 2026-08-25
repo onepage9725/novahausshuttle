@@ -25,6 +25,7 @@
       <div class="modal-card confirm-card">
         <h2>Confirm Weekly Booking</h2>
         <p>Please review your selected timeslots. You can go back and edit before final submit.</p>
+        <div id="confirmStudentInfo" class="student-info"></div>
         <div id="confirmSummary" class="confirm-summary"></div>
         <div class="confirm-actions">
           <button id="confirmBackBtn" type="button">Back and Edit</button>
@@ -40,6 +41,7 @@
           <h2>Your Selected Timeslots</h2>
           <button id="closeSelectedModalBtn" type="button">Close</button>
         </div>
+        <div id="selectedStudentInfo" class="student-info"></div>
         <p class="selected-help">To change, click another slot in the same direction. To delete, click Remove.</p>
         <div id="selectedRows" class="selected-rows"></div>
       </div>
@@ -53,7 +55,10 @@
             <p class="eyebrow">NovaHaus Property Management</p>
             <h1>Shuttle Service Booking</h1>
           </div>
-          <button id="viewSelectionsBtn" class="view-selections-btn" type="button">Check Timeslot</button>
+            <div class="hero-actions">
+              <button id="viewSelectionsBtn" class="view-selections-btn" type="button">Check Timeslot</button>
+              <button id="studentLogoutBtn" class="student-logout-btn" type="button">Logout</button>
+            </div>
         </div>
       </header>
 

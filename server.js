@@ -12,6 +12,7 @@ const {
   getTripsByIds,
   listStudentBookingsByDates,
   verifyStudentName,
+  getStudentProfileByName,
   listStudents,
   createStudent,
   updateStudent,
@@ -332,12 +333,12 @@ app.delete('/api/admin/bookings/:id', requireAdmin, async (req, res) => {
 
 app.post('/api/students/verify', async (req, res) => {
   try {
-    const valid = await verifyStudentName(req.body.fullName);
-    if (!valid) {
+    const student = await getStudentProfileByName(req.body.fullName);
+    if (!student) {
       return res.status(401).json({ error: 'Name not found. Please enter full name with correct capital letters and spacing.' });
     }
 
-    return res.json({ success: true });
+    return res.json({ success: true, student });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
