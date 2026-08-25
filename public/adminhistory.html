@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Driver View - NovaHaus</title>
+    <link rel="icon" type="image/png" href="/novahauslogo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #f8fafd;
+        --card: #ffffff;
+        --line: #dfe7f2;
+        --ink: #0f172a;
+        --muted: #64748b;
+        --green: #16a34a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(180deg, #f5f8fc 0%, var(--bg) 32%, #f8fafd 100%);
+        color: var(--ink);
+      }
+      .wrap {
+        width: min(1180px, 96vw);
+        margin: 12px auto 26px;
+        display: grid;
+        gap: 14px;
+      }
+      .top {
+        display: grid;
+        gap: 10px;
+      }
+      .days {
+        display: grid;
+        gap: 20px;
+      }
+      .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 2.1rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .sub {
+        margin: 3px 0 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .filter-panel {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 12px;
+        border: 1px solid #d8e2f0;
+        background: #f7faff;
+        border-radius: 14px;
+      }
+      .filters {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .tabs {
+        display: inline-flex;
+        gap: 6px;
+      }
+      .tab {
+        background: #eff4fb;
+        border-color: #cfe0f5;
+        border-radius: 16px;
+        padding: 9px 16px;
+        font-size: 0.92rem;
+      }
+      .tab.active {
+        background: #16a34a;
+        color: #fff;
+        border-color: #16a34a;
+      }
+      .filter-label {
+        color: #5b6b82;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+      }
+      select {
+        border: 1px solid #cfe0f5;
+        background: #fff;
+        color: #0f172a;
+        border-radius: 13px;
+        padding: 9px 14px;
+        font: inherit;
+        font-size: 0.95rem;
+        font-weight: 700;
+        min-width: 210px;
+      }
+      button, a.btn {
+        border: 1px solid var(--line);
+        background: #f3f6fb;
+        color: #1f2937;
+        border-radius: 9px;
+        text-decoration: none;
+        padding: 8px 11px;
+        font: inherit;
+        font-size: 0.84rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+      }
+      button:hover,
+      a.btn:hover {
+        background: #eaf0f8;
+      }
+      .btn.active {
+        background: var(--green);
+        color: #fff;
+        border-color: var(--green);
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 16px 16px 14px;
+        display: grid;
+        gap: 10px;
+        box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+      }
+      .day-title {
+        margin: 0;
+        font-size: 1.03rem;
+        font-weight: 750;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .day-icon {
+        font-size: 0.98rem;
+        opacity: 0.9;
+      }
+      .slot-row {
+        border: 1px solid #e2e9f3;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+      }
+      .slot-btn {
+        width: 100%;
+        border: 0;
+        background: #fff;
+        color: var(--ink);
+        padding: 14px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        text-align: left;
+      }
+      .slot-btn:hover {
+        background: #fbfdff;
+      }
+      .slot-left {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .slot-time {
+        font-size: 0.88rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+      .slot-arrow {
+        color: #64748b;
+        font-size: 1.05rem;
+        line-height: 1;
+      }
+      .badge {
+        border-radius: 999px;
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        font-weight: 700;
+      }
+      .badge-dark {
+        background: #111827;
+        color: #fff;
+      }
+      .badge-soft {
+        background: #f2f5fa;
+        color: #475569;
+      }
+      .badge-location {
+        background: #e9effa;
+        color: #334155;
+      }
+      .details {
+        border-top: 1px solid #e6edf7;
+        background: #fbfdff;
+        display: none;
+      }
+      .details.open {
+        display: grid;
+      }
+      .student {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+        padding: 12px 12px;
+        border-bottom: 1px solid #edf3fa;
+        font-size: 0.86rem;
+      }
+      .student:last-child {
+        border-bottom: 0;
+      }
+      .student-left,
+      .student-right {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .student-icon {
+        color: #7486a1;
+        font-size: 0.84rem;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .message {
+        margin: 0;
+        min-height: 16px;
+        font-size: 0.82rem;
+      }
+      .message.error {
+        color: #b91c1c;
+      }
+      .message.success {
+        color: #15803d;
+      }
+      .hidden {
+        display: none !important;
+      }
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+        display: grid;
+        place-items: center;
+        padding: 18px;
+        z-index: 30;
+      }
+      .history-modal {
+        width: min(860px, 95vw);
+        max-height: 88vh;
+        overflow: auto;
+        background: #fff;
+        border: 1px solid #d7e0ed;
+        border-radius: 12px;
+        padding: 14px;
+        display: grid;
+        gap: 12px;
+      }
+      .modal-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .modal-title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 800;
+      }
+      .modal-close {
+        border: 1px solid #cbd5e1;
+        background: #fff;
+        color: #334155;
+        border-radius: 999px;
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        line-height: 1;
+      }
+      .history-controls {
+        display: grid;
+        grid-template-columns: auto auto minmax(210px, 1fr);
+        gap: 10px;
+        align-items: end;
+      }
+      .history-days {
+        display: grid;
+        gap: 10px;
+      }
+      .mini-card {
+        border: 1px solid #dce6f3;
+        border-radius: 10px;
+        padding: 10px;
+        display: grid;
+        gap: 8px;
+        background: #fbfdff;
+      }
+      .mini-day {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 750;
+      }
+      @media (max-width: 680px) {
+        .head {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        h1 {
+          font-size: 1.45rem;
+        }
+        .actions {
+          justify-content: flex-start;
+        }
+        .filters {
+          width: 100%;
+        }
+        .filter-panel {
+          align-items: flex-start;
+        }
+        select {
+          min-width: 180px;
+        }
+        .days {
+          gap: 14px;
+        }
+        .history-controls {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="top">
+        <section class="head">
+          <div>
+            <h1 id="pageTitle">Driver View</h1>
+            <p id="weekText" class="sub">Weekly shuttle bookings by time</p>
+          </div>
+          <div class="actions">
+            <button id="previousWeekBtn" class="btn" type="button">Previous Week</button>
+            <button id="downloadBtn" class="btn" type="button">Download Excel</button>
+            <button id="refreshBtn" class="btn" type="button">Refresh</button>
+            <button id="logoutBtn" class="btn" type="button" style="display:none;">Logout</button>
+            <button id="backBtn" class="btn" type="button">Back</button>
+          </div>
+        </section>
+
+        <section class="filter-panel" aria-label="Driver filters">
+          <div class="tabs" role="tablist" aria-label="Bus filter">
+            <button id="busATab" class="btn tab active" type="button" role="tab" aria-selected="true">Bus A</button>
+            <button id="busBTab" class="btn tab" type="button" role="tab" aria-selected="false">Bus B</button>
+          </div>
+          <div class="filters">
+            <span class="filter-label">Residence</span>
+            <select id="residenceFilter">
+              <option value="ALL">All Residence</option>
+              <option value="AERA">Aera Residence</option>
+              <option value="HELIX">Helix Residence</option>
+            </select>
+          </div>
+        </section>
+      </section>
+
+      <p id="message" class="message" aria-live="polite"></p>
+      <section id="daysContainer" class="days"></section>
+    </main>
+
+    <div id="historyModal" class="modal-overlay hidden" aria-modal="true" role="dialog">
+      <section class="history-modal">
+        <div class="modal-head">
+          <h2 class="modal-title">Schedule History</h2>
+          <button id="historyModalCloseBtn" class="modal-close" type="button" aria-label="Close">x</button>
+        </div>
+
+        <div class="history-controls">
+          <div class="tabs" role="tablist" aria-label="History bus filter">
+            <button id="historyBusATab" class="btn tab active" type="button" role="tab" aria-selected="true">Bus A</button>
+            <button id="historyBusBTab" class="btn tab" type="button" role="tab" aria-selected="false">Bus B</button>
+          </div>
+          <div class="filters">
+            <span class="filter-label">Residence</span>
+            <select id="historyResidenceFilter">
+              <option value="ALL">All Residence</option>
+              <option value="AERA">Aera Residence</option>
+              <option value="HELIX">Helix Residence</option>
+            </select>
+          </div>
+          <div class="filters">
+            <span class="filter-label">Week</span>
+            <select id="historyWeekFilter"></select>
+          </div>
+        </div>
+
+        <p id="historyModalMessage" class="message" aria-live="polite"></p>
+        <section id="historyDaysContainer" class="history-days"></section>
+      </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="adminhistory.js"></script>
+  </body>
+</html>

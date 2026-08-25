@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Driver Login - NovaHaus</title>
+    <link rel="icon" type="image/png" href="/novahauslogo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #f7f9fc;
+        --card: #ffffff;
+        --line: #dde6f2;
+        --ink: #0f172a;
+        --muted: #64748b;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(180deg, #f3f7fb 0%, var(--bg) 100%);
+        display: grid;
+        place-items: center;
+        color: var(--ink);
+      }
+      .card {
+        width: min(420px, 92vw);
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 22px;
+        display: grid;
+        gap: 12px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.45rem;
+        font-weight: 800;
+      }
+      .sub {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.93rem;
+      }
+      input, button {
+        font: inherit;
+      }
+      input {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+      button {
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 12px;
+        background: #0f172a;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .msg {
+        margin: 0;
+        min-height: 18px;
+        font-size: 0.86rem;
+      }
+      .msg.error { color: #b91c1c; }
+      .msg.success { color: #15803d; }
+      .back {
+        color: #334155;
+        text-decoration: none;
+        font-size: 0.9rem;
+      }
+      .back:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>Driver Login</h1>
+      <p class="sub">Enter your bus driver passcode to open Driver View.</p>
+      <input id="passcodeInput" type="password" placeholder="Driver passcode" />
+      <button id="loginBtn" type="button">Login</button>
+      <p id="loginMsg" class="msg" aria-live="polite"></p>
+      <a class="back" href="/">Back</a>
+    </main>
+
+    <script src="driverlogin.js"></script>
+  </body>
+</html>

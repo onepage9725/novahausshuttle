@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NovaHaus Admin Portal</title>
+    <link rel="icon" type="image/png" href="/novahauslogo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #f7f9fc;
+        --card: #ffffff;
+        --line: #dde6f2;
+        --ink: #0f172a;
+        --muted: #64748b;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(180deg, #f3f7fb 0%, var(--bg) 100%);
+        color: var(--ink);
+        display: block;
+        padding: 24px;
+      }
+      body.auth-screen {
+        display: grid;
+        place-items: center;
+      }
+      .shell {
+        width: min(860px, 94vw);
+        margin: 0 auto;
+        display: grid;
+        gap: 14px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 16px;
+        display: grid;
+        gap: 12px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+      }
+      .login-card {
+        width: min(420px, 92vw);
+        margin: 0 auto;
+        padding: 22px;
+      }
+      h1, h2, p { margin: 0; }
+      input, button {
+        font: inherit;
+        border-radius: 10px;
+      }
+      input {
+        border: 1px solid var(--line);
+        padding: 10px 12px;
+      }
+      button {
+        border: 1px solid var(--ink);
+        background: var(--ink);
+        color: #fff;
+        padding: 10px 12px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 0.93rem;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+      }
+      .row-3 {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .row-4 {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1fr 1.2fr auto;
+        gap: 8px;
+        align-items: end;
+      }
+      .history-filters label {
+        display: grid;
+        gap: 6px;
+      }
+      .history-filters .field-label {
+        color: #5b6b82;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 700;
+      }
+      .history-filters select,
+      .history-filters input {
+        width: 100%;
+        border: 1px solid #cfe0f5;
+        border-radius: 12px;
+        background: #fff;
+        padding: 10px 12px;
+      }
+      .history-filters button {
+        border-radius: 12px;
+        padding: 10px 14px;
+      }
+      .hidden { display: none; }
+      .msg {
+        min-height: 20px;
+        font-size: 0.85rem;
+      }
+      .msg.error { color: #ca3a31; }
+      .msg.success { color: #1f9d55; }
+      .list {
+        display: grid;
+        gap: 8px;
+      }
+      .item {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .actions {
+        display: inline-flex;
+        gap: 6px;
+      }
+      .actions button {
+        border-color: var(--line);
+        background: #fff;
+        color: var(--ink);
+        padding: 6px 10px;
+      }
+      .back-link {
+        text-decoration: none;
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .topbar.hidden {
+        display: none;
+      }
+      .ghost-btn {
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+      }
+      a.ghost-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 9px 12px;
+      }
+      .item-main {
+        display: grid;
+        gap: 4px;
+      }
+      .item-title {
+        font-weight: 600;
+      }
+      .item-sub {
+        color: #6b7280;
+        font-size: 0.85rem;
+      }
+      .table-wrap {
+        overflow: auto;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+      th, td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid #edf1f5;
+        white-space: nowrap;
+      }
+      th {
+        background: #f8fafc;
+        font-weight: 600;
+      }
+      @media (max-width: 900px) {
+        .row-4 {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 640px) {
+        .row-4 {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <div id="topbar" class="topbar hidden">
+        <a class="back-link" href="/">Back to Shuttle Booking</a>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <a class="ghost-btn" href="/adminhistory">Driver History</a>
+          <button id="logoutBtn" class="ghost-btn hidden" type="button">Logout</button>
+        </div>
+      </div>
+
+      <section class="card login-card" id="loginView">
+        <h1>Admin Portal</h1>
+        <p class="muted">Login with passcode to manage students and view weekly booking history.</p>
+        <input id="passcodeInput" type="password" placeholder="Admin passcode" />
+        <button id="loginBtn" type="button">Login</button>
+        <p id="loginMsg" class="msg"></p>
+        <a class="back-link" href="/">Back</a>
+      </section>
+
+      <section class="card hidden" id="manageView">
+        <h2>Students</h2>
+        <p class="muted">Full name must match exactly for booking access. Contact number is required, remark is optional.</p>
+        <div class="row-3">
+          <input id="newStudentNameInput" type="text" placeholder="Student full name" />
+          <input id="newStudentContactInput" type="text" placeholder="Contact number" />
+          <input id="newStudentRemarkInput" type="text" placeholder="Remark (optional)" />
+        </div>
+        <div class="row">
+          <span></span>
+          <button id="addStudentBtn" type="button">Add</button>
+        </div>
+        <p id="manageMsg" class="msg"></p>
+        <div id="studentsList" class="list"></div>
+      </section>
+
+      <section class="card hidden" id="historyView">
+        <h2>Weekly Booking History</h2>
+        <p class="muted">Filter bookings by week, bus, residence, or show all.</p>
+        <div class="row-4 history-filters">
+          <label>
+            <span class="field-label">Week</span>
+            <select id="historyWeek"></select>
+          </label>
+          <label>
+            <span class="field-label">Bus</span>
+            <select id="historyBus">
+              <option value="">All buses</option>
+              <option value="A">Bus A</option>
+              <option value="B">Bus B</option>
+            </select>
+          </label>
+          <label>
+            <span class="field-label">Residence</span>
+            <select id="historyLocation">
+              <option value="">All residences</option>
+              <option value="AERA">Aera Residence</option>
+              <option value="HELIX">Helix Residence</option>
+            </select>
+          </label>
+          <label>
+            <span class="field-label">Student Name</span>
+            <input id="historyName" type="text" placeholder="Search by name" />
+          </label>
+          <button id="historyRefreshBtn" type="button">Apply</button>
+        </div>
+        <p id="historyMsg" class="msg"></p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Bus</th>
+                <th>Residence</th>
+                <th>Student</th>
+                <th>Contact</th>
+                <th>Booked At</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="historyRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="adminportal.js"></script>
+  </body>
+</html>

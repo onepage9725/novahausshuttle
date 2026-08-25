@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NovaHaus Shuttle Booking</title>
+    <link rel="icon" type="image/png" href="/novahauslogo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="studentGate" class="modal-overlay">
+      <div class="modal-card">
+        <h2>Enter Your Full Name</h2>
+        <p>Please enter your full name exactly as registered by admin (capital letters and spacing must match).</p>
+        <input id="studentNameInput" type="text" placeholder="e.g. John Tan Wei Ming" />
+        <button id="studentNameSubmit" type="button">Continue</button>
+        <p id="studentGateMessage" class="modal-message"></p>
+      </div>
+    </div>
+
+    <div id="confirmModal" class="modal-overlay hidden">
+      <div class="modal-card confirm-card">
+        <h2>Confirm Weekly Booking</h2>
+        <p>Please review your selected timeslots. You can go back and edit before final submit.</p>
+        <div id="confirmSummary" class="confirm-summary"></div>
+        <div class="confirm-actions">
+          <button id="confirmBackBtn" type="button">Back and Edit</button>
+          <button id="confirmSubmitBtn" type="button">Confirm and Submit</button>
+        </div>
+        <p id="confirmMessage" class="modal-message"></p>
+      </div>
+    </div>
+
+    <div id="selectedModal" class="modal-overlay hidden">
+      <div class="modal-card selected-modal-card">
+        <div class="selected-modal-head">
+          <h2>Your Selected Timeslots</h2>
+          <button id="closeSelectedModalBtn" type="button">Close</button>
+        </div>
+        <p class="selected-help">To change, click another slot in the same direction. To delete, click Remove.</p>
+        <div id="selectedRows" class="selected-rows"></div>
+      </div>
+    </div>
+
+    <main class="app-shell">
+      <header class="hero">
+        <img src="/logo.png" alt="NovaHaus logo" class="logo" />
+        <div class="hero-main">
+          <div>
+            <p class="eyebrow">NovaHaus Property Management</p>
+            <h1>Shuttle Service Booking</h1>
+          </div>
+          <button id="viewSelectionsBtn" class="view-selections-btn" type="button">Check Timeslot</button>
+        </div>
+      </header>
+
+      <section class="floating-controls" aria-label="Shuttle options">
+        <section class="tabs" aria-label="Residence selector">
+          <button id="locationAeraTab" class="location-tab active" type="button" data-location="AERA">Aera Residence</button>
+          <button id="locationHelixTab" class="location-tab" type="button" data-location="HELIX">Helix Residence</button>
+        </section>
+
+        <span class="controls-divider" aria-hidden="true"></span>
+
+        <section class="tabs" aria-label="Bus selector">
+          <button id="busATab" class="bus-tab active" type="button" data-bus="A">Bus A</button>
+          <button id="busBTab" class="bus-tab" type="button" data-bus="B">Bus B</button>
+        </section>
+      </section>
+
+      <section id="weeklyList" class="weekly-list"></section>
+
+      <section class="card proceed-card" aria-label="Submit selections">
+        <p class="proceed-note">Select timeslots for Monday to Friday, review in Selected Timeslots, then proceed to confirm.</p>
+        <button id="proceedBtn" class="proceed-btn" type="button">Proceed</button>
+      </section>
+
+      <p id="message" class="message" role="status" aria-live="polite"></p>
+    </main>
+
+    <template id="tripItemTemplate">
+      <button class="trip-item" type="button">
+        <span class="trip-time"></span>
+        <span class="trip-capacity"></span>
+      </button>
+    </template>
+
+    <template id="dayCardTemplate">
+      <article class="card day-card">
+        <div class="day-head">
+          <h2 class="day-title"></h2>
+          <div class="day-actions">
+            <button class="change-btn" type="button" hidden>Change my time</button>
+            <button class="skip-btn" type="button">Skip this day</button>
+          </div>
+        </div>
+
+        <div class="day-section">
+          <h3 class="route-title route-outbound"></h3>
+          <div class="trip-list outbound-list"></div>
+        </div>
+
+        <div class="day-section">
+          <h3 class="route-title route-inbound"></h3>
+          <div class="trip-list inbound-list"></div>
+        </div>
+
+        <div class="skipped-view" hidden>
+          <p class="skipped-text">Day skipped</p>
+          <button class="add-times-btn" type="button">Add times for this day</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
