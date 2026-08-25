@@ -455,9 +455,7 @@ function flattenRows(payload) {
         rows.push({
           date: day.date,
           time: slot.time,
-          direction: slot.direction,
           residence: slot.location || '-',
-          pax: slot.pax,
           student_name: '',
           contact_number: ''
         });
@@ -468,9 +466,7 @@ function flattenRows(payload) {
         rows.push({
           date: day.date,
           time: slot.time,
-          direction: slot.direction,
           residence: slot.location || '-',
-          pax: slot.pax,
           student_name: student.studentName || '',
           contact_number: student.contactNumber || ''
         });
