@@ -449,19 +449,24 @@ app.get('/api/week-trips', async (req, res) => {
 
   const monday = new Date(`${activeWeekStart}T00:00:00`);
 
-  const days = [];
+  let days = [];
   try {
-    for (let i = 0; i < 5; i += 1) {
+    const jobs = Array.from({ length: 5 }, (_unused, i) => i).map(async (i) => {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
       const targetDate = dayjs(d).format('YYYY-MM-DD');
+
       await ensureTripsForDate(targetDate, location);
-      days.push({
+      const trips = await listTripsByDate(targetDate, location);
+
+      return {
         date: targetDate,
         location,
-        trips: await listTripsByDate(targetDate, location)
-      });
-    }
+        trips
+      };
+    });
+
+    days = await Promise.all(jobs);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

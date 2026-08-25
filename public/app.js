@@ -31,6 +31,7 @@ const weekTripsCache = new Map();
 let currentStudentName = '';
 let activeWeekDates = [];
 let currentWeekDays = [];
+let submittedWeekLoaded = false;
 
 function hasSubmittedSelections() {
   return submittedTripsByKey.size > 0;
@@ -254,9 +255,14 @@ function directionLabel(direction) {
   return direction === 'OUTBOUND' ? 'To University' : 'Back to Residence';
 }
 
-async function loadSubmittedWeekBookings() {
+async function loadSubmittedWeekBookings(forceReload = false) {
   if (!currentStudentName) {
     submittedTripsByKey.clear();
+    submittedWeekLoaded = false;
+    return;
+  }
+
+  if (submittedWeekLoaded && !forceReload) {
     return;
   }
 
@@ -284,6 +290,8 @@ async function loadSubmittedWeekBookings() {
       submitted: true
     });
   });
+
+  submittedWeekLoaded = true;
 }
 
 function removeSelectedTrip(date, direction) {
@@ -772,7 +780,7 @@ async function confirmAndSubmitSelectedTrips() {
     skippedDates.clear();
     editableDates.clear();
     weekTripsCache.clear();
-    await loadSubmittedWeekBookings();
+    await loadSubmittedWeekBookings(true);
     closeConfirmModal();
     if (inChangeMode) {
       setMessage('Timeslot changes saved successfully.', 'success');
@@ -794,6 +802,7 @@ async function initStudentGate() {
   selectedTripsByKey.clear();
   skippedDates.clear();
   editableDates.clear();
+  submittedWeekLoaded = false;
   studentNameInput.value = '';
   setGateMessage('');
   studentGate.classList.remove('hidden');
