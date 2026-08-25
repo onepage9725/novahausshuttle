@@ -34,11 +34,32 @@ const driverSessions = new Map();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+let dbInitPromise = null;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/logo.png', express.static(path.join(__dirname, 'logo.png')));
 app.use('/novahauslogo.png', express.static(path.join(__dirname, 'novahauslogo.png')));
+
+function ensureDbInitialized() {
+  if (!dbInitPromise) {
+    dbInitPromise = initDb().catch((error) => {
+      dbInitPromise = null;
+      throw error;
+    });
+  }
+
+  return dbInitPromise;
+}
+
+app.use('/api', async (_req, res, next) => {
+  try {
+    await ensureDbInitialized();
+    return next();
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
 
 function createAdminToken() {
   const token = crypto.randomBytes(24).toString('hex');
@@ -630,7 +651,7 @@ app.get('*', (_req, res) => {
 
 async function startServer() {
   try {
-    await initDb();
+    await ensureDbInitialized();
     app.listen(PORT, () => {
       console.log(`NovaHaus shuttle app running at http://localhost:${PORT}`);
     });
@@ -640,4 +661,8 @@ async function startServer() {
   }
 }
 
-void startServer();
+if (require.main === module) {
+  void startServer();
+}
+
+module.exports = app;
