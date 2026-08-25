@@ -23,14 +23,14 @@
         background: linear-gradient(180deg, #f3f7fb 0%, var(--bg) 100%);
         color: var(--ink);
         display: block;
-        padding: 24px;
+        padding: 20px;
       }
       body.auth-screen {
         display: grid;
         place-items: center;
       }
       .shell {
-        width: min(860px, 94vw);
+        width: min(1280px, 96vw);
         margin: 0 auto;
         display: grid;
         gap: 14px;
@@ -198,6 +198,10 @@
         font-weight: 600;
       }
       @media (max-width: 900px) {
+        body {
+          padding: 14px;
+        }
+
         .row-3 {
           grid-template-columns: 1fr;
         }
