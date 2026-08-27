@@ -30,8 +30,10 @@ const DRIVER_PASSCODE_A = process.env.DRIVER_PASSCODE_A || 'Nova123123@';
 const DRIVER_PASSCODE_B = process.env.DRIVER_PASSCODE_B || 'Nova123123@@';
 const ADMIN_SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 const DRIVER_SESSION_TTL_MS = 8 * 60 * 60 * 1000;
+const WEEK_TRIPS_CACHE_TTL_MS = 15 * 1000;
 const adminSessions = new Map();
 const driverSessions = new Map();
+const weekTripsCache = new Map();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -109,6 +111,35 @@ function requireDriver(req, res, next) {
 
   req.driverSession = session;
   return next();
+}
+
+function buildWeekTripsCacheKey(location, weekStart) {
+  return `${location}|${weekStart}`;
+}
+
+function getCachedWeekTrips(cacheKey) {
+  const entry = weekTripsCache.get(cacheKey);
+  if (!entry) {
+    return null;
+  }
+
+  if (Date.now() > entry.expiresAt) {
+    weekTripsCache.delete(cacheKey);
+    return null;
+  }
+
+  return entry.payload;
+}
+
+function setCachedWeekTrips(cacheKey, payload) {
+  weekTripsCache.set(cacheKey, {
+    payload,
+    expiresAt: Date.now() + WEEK_TRIPS_CACHE_TTL_MS
+  });
+}
+
+function invalidateWeekTripsCache() {
+  weekTripsCache.clear();
 }
 
 app.post('/api/admin/login', (req, res) => {
@@ -322,6 +353,7 @@ app.delete('/api/admin/bookings/:id', requireAdmin, async (req, res) => {
 
   try {
     const result = await deleteBookingById(id);
+    invalidateWeekTripsCache();
     return res.json(result);
   } catch (error) {
     if (String(error.message || '').toLowerCase().includes('not found')) {
@@ -394,6 +426,7 @@ app.post('/api/students/change-days', async (req, res) => {
       results.push(result);
     }
 
+    invalidateWeekTripsCache();
     return res.json({ success: true, results });
   } catch (error) {
     return res.status(409).json({ error: error.message });
@@ -448,6 +481,15 @@ app.get('/api/week-trips', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
+  const cacheKey = buildWeekTripsCacheKey(location, activeWeekStart);
+  const cachedPayload = getCachedWeekTrips(cacheKey);
+  if (cachedPayload) {
+    return res.json({
+      anchorDate: date || activeWeekStart,
+      ...cachedPayload
+    });
+  }
+
   const monday = new Date(`${activeWeekStart}T00:00:00`);
 
   let days = [];
@@ -472,11 +514,17 @@ app.get('/api/week-trips', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 
-  return res.json({
-    anchorDate: date || activeWeekStart,
+  const responsePayload = {
     location,
     weekStart: activeWeekStart,
     days
+  };
+
+  setCachedWeekTrips(cacheKey, responsePayload);
+
+  return res.json({
+    anchorDate: date || activeWeekStart,
+    ...responsePayload
   });
 });
 
@@ -530,6 +578,8 @@ app.post('/api/book', async (req, res) => {
       error: 'This shuttle is now full. Please select another time.'
     });
   }
+
+  invalidateWeekTripsCache();
 
   return res.json({
     success: true,
@@ -641,6 +691,7 @@ app.post('/api/book-batch', async (req, res) => {
       return res.status(statusCode).json({ error: message, bookedCount: 0 });
     }
 
+    invalidateWeekTripsCache();
     return res.json({
       success: true,
       bookedCount: bookedTrips.length,

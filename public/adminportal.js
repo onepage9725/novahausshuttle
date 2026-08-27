@@ -168,6 +168,8 @@ function renderStudents(students) {
       }
 
       try {
+        deleteBtn.disabled = true;
+        setMsg(manageMsg, 'Deleting student...', 'success');
         const response = await fetch(`/api/admin/students/${student.id}`, {
           method: 'DELETE',
           headers: headers(false)
@@ -177,9 +179,10 @@ function renderStudents(students) {
           throw new Error(payload.error || 'Unable to delete student.');
         }
 
+        item.remove();
         setMsg(manageMsg, 'Student deleted.', 'success');
-        await loadStudents();
       } catch (error) {
+        deleteBtn.disabled = false;
         setMsg(manageMsg, error.message, 'error');
       }
     });
@@ -197,12 +200,7 @@ function renderHistoryRows(bookings) {
   historyRows.innerHTML = '';
 
   if (!bookings.length) {
-    const row = document.createElement('tr');
-    const cell = document.createElement('td');
-    cell.colSpan = 8;
-    cell.textContent = 'No booking history found for this filter.';
-    row.appendChild(cell);
-    historyRows.appendChild(row);
+    renderNoHistoryRowsState();
     return;
   }
 
@@ -235,6 +233,8 @@ function renderHistoryRows(bookings) {
       }
 
       try {
+        deleteBtn.disabled = true;
+        setMsg(historyMsg, 'Deleting booking...', 'success');
         const response = await fetch(`/api/admin/bookings/${booking.bookingId}`, {
           method: 'DELETE',
           headers: headers(false)
@@ -244,9 +244,13 @@ function renderHistoryRows(bookings) {
           throw new Error(payload.error || 'Unable to delete booking.');
         }
 
+        row.remove();
+        if (!historyRows.querySelector('tr')) {
+          renderNoHistoryRowsState();
+        }
         setMsg(historyMsg, 'Booking deleted successfully.', 'success');
-        await loadHistory();
       } catch (error) {
+        deleteBtn.disabled = false;
         setMsg(historyMsg, error.message, 'error');
       }
     });
@@ -256,6 +260,15 @@ function renderHistoryRows(bookings) {
 
     historyRows.appendChild(row);
   });
+}
+
+function renderNoHistoryRowsState() {
+  const row = document.createElement('tr');
+  const cell = document.createElement('td');
+  cell.colSpan = 8;
+  cell.textContent = 'No booking history found for this filter.';
+  row.appendChild(cell);
+  historyRows.appendChild(row);
 }
 
 function renderWeekOptions(availableWeeks, selectedWeek) {

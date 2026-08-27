@@ -396,7 +396,6 @@ button {
   border: 1px solid var(--line);
   border-radius: 12px;
   background: rgba(248, 250, 252, 0.95);
-  backdrop-filter: blur(6px);
   box-shadow: 0 6px 16px rgba(17, 24, 39, 0.08);
   overflow-x: auto;
 }
@@ -666,7 +665,7 @@ button {
 }
 
 .trip-item.locked {
-  filter: blur(0.7px) saturate(0.75);
+  filter: saturate(0.85);
   opacity: 0.55;
 }
 

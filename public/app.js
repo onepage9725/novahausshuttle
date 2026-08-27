@@ -185,6 +185,27 @@ function clearWeek() {
   weeklyList.innerHTML = '';
 }
 
+function getDayDataByDate(date) {
+  return currentWeekDays.find((day) => day.date === date) || null;
+}
+
+function rerenderDayByDate(date) {
+  const dayData = getDayDataByDate(date);
+  if (!dayData) {
+    return;
+  }
+
+  const currentNode = weeklyList.querySelector(`[data-date="${date}"]`);
+  const nextNode = renderDay(dayData);
+
+  if (!currentNode) {
+    weeklyList.appendChild(nextNode);
+    return;
+  }
+
+  currentNode.replaceWith(nextNode);
+}
+
 function renderTrip(trip) {
   const node = tripItemTemplate.content.firstElementChild.cloneNode(true);
   node.classList.add(rowClass(trip.status));
@@ -339,7 +360,9 @@ function removeSelectedTrip(date, direction) {
 
   selectedTripsByKey.delete(key);
   setMessage(`Removed ${directionLabel(direction)} slot on ${toDisplayDay(date)}.`, 'success');
-  renderWeek(currentWeekDays);
+  rerenderDayByDate(date);
+  renderSelectedSummary();
+  updateProceedState();
 }
 
 function renderSelectedSummary() {
@@ -374,7 +397,9 @@ function renderSelectedSummary() {
         }
         skippedDates.delete(date);
         setMessage(`Skip removed for ${toDisplayDay(date)}.`, 'success');
-        renderWeek(currentWeekDays);
+        rerenderDayByDate(date);
+        renderSelectedSummary();
+        updateProceedState();
       });
 
       dayBox.appendChild(skippedText);
@@ -505,7 +530,9 @@ function renderDay(dayData) {
         setMessage(`Change mode enabled for ${toDisplayDay(date)}. Select new slot(s) or skip this day.`, 'success');
       }
 
-      renderWeek(currentWeekDays);
+      rerenderDayByDate(date);
+      renderSelectedSummary();
+      updateProceedState();
     });
   } else {
     changeBtn.hidden = true;
@@ -595,9 +622,10 @@ function setActiveLocation(location) {
 
 async function loadWeekTrips() {
   try {
-    const days = await fetchWeekTrips();
+    const daysPromise = fetchWeekTrips();
+    const submittedPromise = currentStudentName ? loadSubmittedWeekBookings() : Promise.resolve();
+    const [days] = await Promise.all([daysPromise, submittedPromise]);
     currentWeekDays = days;
-    await loadSubmittedWeekBookings();
     renderWeek(days);
     if (!hasSubmittedSelections()) {
       setMessage('Choose timeslots first, then click Proceed to confirm all selections.', 'success');
@@ -637,7 +665,9 @@ function toggleTripSelection(trip) {
     setMessage(`Selected ${toDisplayTime(trip.time)} on ${toDisplayDay(trip.date)}.`, 'success');
   }
 
-  renderWeek(currentWeekDays);
+  rerenderDayByDate(trip.date);
+  renderSelectedSummary();
+  updateProceedState();
 }
 
 function buildConfirmationLines() {

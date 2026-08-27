@@ -29,7 +29,9 @@ let selectedWeekStart = '';
 let lastPayload = null;
 let availableWeeks = [];
 const driverPayloadCache = new Map();
-let currentFetchController = null;
+const driverPayloadPending = new Map();
+let mainLoadRequestId = 0;
+let historyLoadRequestId = 0;
 
 const historyState = {
   bus: 'A',
@@ -164,7 +166,12 @@ function renderHistoryWeekOptions() {
   });
 }
 
-async function fetchDriverPayload({ bus, location, weekStart }) {
+function buildDriverPayloadCacheKey(endpoint, bus, location, weekStart) {
+  return `${endpoint}|${bus}|${location}|${weekStart || ''}`;
+}
+
+async function fetchDriverPayload({ bus, location, weekStart }, options = {}) {
+  const { forceRefresh = false } = options;
   const accessToken = token();
   const endpoint = isDriverMode ? '/api/driver/view' : '/api/admin/driver-view';
   const query = new URLSearchParams();
@@ -174,31 +181,38 @@ async function fetchDriverPayload({ bus, location, weekStart }) {
     query.set('weekStart', weekStart);
   }
 
-  const cacheKey = `${endpoint}|${bus}|${location}|${weekStart || ''}`;
-  if (driverPayloadCache.has(cacheKey)) {
+  const cacheKey = buildDriverPayloadCacheKey(endpoint, bus, location, weekStart);
+  if (!forceRefresh && driverPayloadCache.has(cacheKey)) {
     return driverPayloadCache.get(cacheKey);
   }
 
-  if (currentFetchController) {
-    currentFetchController.abort();
-  }
-  currentFetchController = new AbortController();
-
-  const response = await fetch(`${endpoint}?${query.toString()}`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`
-    },
-    signal: currentFetchController.signal
-  });
-
-  const payload = await response.json();
-  if (!response.ok) {
-    throw new Error(payload.error || 'Unable to load driver view.');
+  if (!forceRefresh && driverPayloadPending.has(cacheKey)) {
+    return driverPayloadPending.get(cacheKey);
   }
 
-  driverPayloadCache.set(cacheKey, payload);
+  const requestPromise = (async () => {
+    const response = await fetch(`${endpoint}?${query.toString()}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
 
-  return payload;
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error || 'Unable to load driver view.');
+    }
+
+    driverPayloadCache.set(cacheKey, payload);
+    return payload;
+  })();
+
+  driverPayloadPending.set(cacheKey, requestPromise);
+
+  try {
+    return await requestPromise;
+  } finally {
+    driverPayloadPending.delete(cacheKey);
+  }
 }
 
 function renderHistoryDays(payload) {
@@ -240,9 +254,15 @@ function renderHistoryDays(payload) {
   }
 }
 
-async function loadHistoryModalData() {
+async function loadHistoryModalData(options = {}) {
+  const requestId = ++historyLoadRequestId;
+  const { forceRefresh = false } = options;
   setHistoryMessage('Loading schedule history...', 'success');
-  const payload = await fetchDriverPayload(historyState);
+  const payload = await fetchDriverPayload(historyState, { forceRefresh });
+
+  if (requestId !== historyLoadRequestId) {
+    return;
+  }
 
   availableWeeks = payload.availableWeeks || availableWeeks;
   historyState.weekStart = payload.weekStart || historyState.weekStart;
@@ -407,7 +427,9 @@ function renderDays(payload) {
   });
 }
 
-async function loadDriverView() {
+async function loadDriverView(options = {}) {
+  const requestId = ++mainLoadRequestId;
+  const { forceRefresh = false } = options;
   const accessToken = token();
   if (!accessToken) {
     if (isDriverMode) {
@@ -423,7 +445,11 @@ async function loadDriverView() {
     location: activeLocation,
     bus: activeBus,
     weekStart: selectedWeekStart
-  });
+  }, { forceRefresh });
+
+  if (requestId !== mainLoadRequestId) {
+    return;
+  }
 
   lastPayload = payload;
   selectedWeekStart = payload.weekStart || selectedWeekStart;
@@ -534,24 +560,34 @@ async function downloadSchedule() {
 }
 
 busATab.addEventListener('click', () => {
+  if (activeBus === 'A') {
+    return;
+  }
   activeBus = 'A';
   updateTabState();
   void loadDriverView().catch(handleLoadError);
 });
 
 busBTab.addEventListener('click', () => {
+  if (activeBus === 'B') {
+    return;
+  }
   activeBus = 'B';
   updateTabState();
   void loadDriverView().catch(handleLoadError);
 });
 
 residenceFilter.addEventListener('change', () => {
-  activeLocation = String(residenceFilter.value || 'ALL').toUpperCase();
+  const nextLocation = String(residenceFilter.value || 'ALL').toUpperCase();
+  if (nextLocation === activeLocation) {
+    return;
+  }
+  activeLocation = nextLocation;
   void loadDriverView().catch(handleLoadError);
 });
 
 refreshBtn.addEventListener('click', () => {
-  void loadDriverView().catch(handleLoadError);
+  void loadDriverView({ forceRefresh: true }).catch(handleLoadError);
 });
 
 previousWeekBtn.addEventListener('click', () => {
@@ -587,6 +623,9 @@ if (historyModal) {
 
 if (historyBusATab) {
   historyBusATab.addEventListener('click', () => {
+    if (historyState.bus === 'A') {
+      return;
+    }
     historyState.bus = 'A';
     updateHistoryBusTabState();
     void loadHistoryModalData().catch(handleHistoryLoadError);
@@ -595,6 +634,9 @@ if (historyBusATab) {
 
 if (historyBusBTab) {
   historyBusBTab.addEventListener('click', () => {
+    if (historyState.bus === 'B') {
+      return;
+    }
     historyState.bus = 'B';
     updateHistoryBusTabState();
     void loadHistoryModalData().catch(handleHistoryLoadError);
@@ -603,7 +645,11 @@ if (historyBusBTab) {
 
 if (historyResidenceFilter) {
   historyResidenceFilter.addEventListener('change', () => {
-    historyState.location = String(historyResidenceFilter.value || 'ALL').toUpperCase();
+    const nextLocation = String(historyResidenceFilter.value || 'ALL').toUpperCase();
+    if (nextLocation === historyState.location) {
+      return;
+    }
+    historyState.location = nextLocation;
     void loadHistoryModalData().catch(handleHistoryLoadError);
   });
 }
