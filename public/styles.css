@@ -298,11 +298,11 @@ body {
   background: #fff;
   color: #111827;
   border-radius: 999px;
-  padding: 4px 12px;
-  min-height: 44px;
+  padding: 3px 10px;
+  min-height: 38px;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
 }
 
@@ -312,25 +312,25 @@ body {
 }
 
 .language-option {
-  font-size: 0.9rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: #9aa5b5;
   line-height: 1;
 }
 
 .language-track {
-  width: 72px;
-  height: 36px;
+  width: 58px;
+  height: 30px;
   border-radius: 999px;
   background: #dbe1ec;
-  padding: 3px;
+  padding: 2px;
   display: inline-flex;
   align-items: center;
 }
 
 .language-thumb {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.22);
@@ -339,7 +339,7 @@ body {
 }
 
 .language-toggle.is-zh .language-thumb {
-  transform: translateX(36px);
+  transform: translateX(28px);
 }
 
 .language-toggle.is-en .language-option-en,
