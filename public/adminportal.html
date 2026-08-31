@@ -16,6 +16,9 @@
         --ink: #0f172a;
         --muted: #64748b;
       }
+      * {
+        box-sizing: border-box;
+      }
       body {
         margin: 0;
         min-height: 100vh;
@@ -177,6 +180,17 @@
         color: #6b7280;
         font-size: 0.85rem;
       }
+      .student-tools {
+        display: grid;
+        gap: 8px;
+      }
+      .student-tools input {
+        width: 100%;
+      }
+      .history-actions {
+        display: inline-flex;
+        gap: 8px;
+      }
       .table-wrap {
         overflow: auto;
         border: 1px solid var(--line);
@@ -249,6 +263,9 @@
           <button id="addStudentBtn" type="button">Add</button>
         </div>
         <p id="manageMsg" class="msg"></p>
+        <div class="student-tools">
+          <input id="studentsSearchInput" type="text" placeholder="Search by name, contact, or remark" />
+        </div>
         <div id="studentsList" class="list"></div>
       </section>
 
@@ -280,13 +297,17 @@
             <span class="field-label">Student Name</span>
             <input id="historyName" type="text" placeholder="Search by name" />
           </label>
-          <button id="historyRefreshBtn" type="button">Apply</button>
+          <div class="history-actions">
+            <button id="historyRefreshBtn" type="button">Apply</button>
+            <button id="historyDeleteSelectedBtn" type="button" class="ghost-btn" disabled>Delete Selected</button>
+          </div>
         </div>
         <p id="historyMsg" class="msg"></p>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
+                <th><input id="historySelectAll" type="checkbox" aria-label="Select all bookings" /></th>
                 <th>Date</th>
                 <th>Time</th>
                 <th>Bus</th>

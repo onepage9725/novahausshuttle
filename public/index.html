@@ -10,9 +10,9 @@
   <body>
     <div id="studentGate" class="modal-overlay">
       <div class="modal-card">
-        <h2>Enter Your Full Name</h2>
-        <p>Please enter your full name exactly as registered by admin (capital letters and spacing must match).</p>
-        <input id="studentNameInput" type="text" placeholder="e.g. John Tan Wei Ming" />
+        <h2 id="studentGateTitle">Enter Your Full Name</h2>
+        <p id="studentGateDesc">Please enter your full name exactly as registered by admin (automatically converted to uppercase without spaces).</p>
+        <input id="studentNameInput" type="text" placeholder="e.g. JOHNTANWEIMING" />
         <button id="studentNameSubmit" type="button">Continue</button>
         <p id="studentGateMessage" class="modal-message"></p>
       </div>
@@ -20,8 +20,8 @@
 
     <div id="confirmModal" class="modal-overlay hidden">
       <div class="modal-card confirm-card">
-        <h2>Confirm Weekly Booking</h2>
-        <p>Please review your selected timeslots. You can go back and edit before final submit.</p>
+        <h2 id="confirmTitle">Confirm Weekly Booking</h2>
+        <p id="confirmDesc">Please review your selected timeslots. You can go back and edit before final submit.</p>
         <div id="confirmStudentInfo" class="student-info"></div>
         <div id="confirmSummary" class="confirm-summary"></div>
         <div class="confirm-actions">
@@ -35,11 +35,11 @@
     <div id="selectedModal" class="modal-overlay hidden">
       <div class="modal-card selected-modal-card">
         <div class="selected-modal-head">
-          <h2>Your Selected Timeslots</h2>
+          <h2 id="selectedModalTitle">Your Selected Timeslots</h2>
           <button id="closeSelectedModalBtn" type="button">Close</button>
         </div>
         <div id="selectedStudentInfo" class="student-info"></div>
-        <p class="selected-help">To change, click another slot in the same direction. To delete, click Remove.</p>
+        <p id="selectedHelpText" class="selected-help">To change, click another slot in the same direction. To delete, click Remove.</p>
         <div id="selectedRows" class="selected-rows"></div>
       </div>
     </div>
@@ -49,10 +49,17 @@
         <img src="/logo.png" alt="NovaHaus logo" class="logo" />
         <div class="hero-main">
           <div>
-            <p class="eyebrow">NovaHaus Property Management</p>
-            <h1>Shuttle Service Booking</h1>
+            <p id="heroEyebrow" class="eyebrow">NovaHaus Property Management</p>
+            <h1 id="heroTitle">Shuttle Service Booking</h1>
           </div>
             <div class="hero-actions">
+              <button id="languageToggle" class="language-toggle" type="button" aria-label="Language switcher" aria-pressed="false">
+                <span class="language-option language-option-en">EN</span>
+                <span class="language-track" aria-hidden="true">
+                  <span class="language-thumb"></span>
+                </span>
+                <span class="language-option language-option-zh">中文</span>
+              </button>
               <button id="viewSelectionsBtn" class="view-selections-btn" type="button">Check Timeslot</button>
               <button id="studentLogoutBtn" class="student-logout-btn" type="button">Logout</button>
             </div>
@@ -76,7 +83,7 @@
       <section id="weeklyList" class="weekly-list"></section>
 
       <section class="card proceed-card" aria-label="Submit selections">
-        <p class="proceed-note">Select timeslots for Monday to Friday, review in Selected Timeslots, then proceed to confirm.</p>
+        <p id="proceedNote" class="proceed-note">Select timeslots for Monday to Friday, review in Selected Timeslots, then proceed to confirm.</p>
         <button id="proceedBtn" class="proceed-btn" type="button">Proceed</button>
       </section>
 

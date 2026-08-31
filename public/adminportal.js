@@ -10,6 +10,7 @@ const newStudentNameInput = document.getElementById('newStudentNameInput');
 const newStudentContactInput = document.getElementById('newStudentContactInput');
 const newStudentRemarkInput = document.getElementById('newStudentRemarkInput');
 const addStudentBtn = document.getElementById('addStudentBtn');
+const studentsSearchInput = document.getElementById('studentsSearchInput');
 const manageMsg = document.getElementById('manageMsg');
 const studentsList = document.getElementById('studentsList');
 const historyWeek = document.getElementById('historyWeek');
@@ -17,10 +18,13 @@ const historyBus = document.getElementById('historyBus');
 const historyLocation = document.getElementById('historyLocation');
 const historyName = document.getElementById('historyName');
 const historyRefreshBtn = document.getElementById('historyRefreshBtn');
+const historyDeleteSelectedBtn = document.getElementById('historyDeleteSelectedBtn');
+const historySelectAll = document.getElementById('historySelectAll');
 const historyMsg = document.getElementById('historyMsg');
 const historyRows = document.getElementById('historyRows');
 
 const ADMIN_TOKEN_KEY = 'novashuttle_admin_token';
+let allStudents = [];
 
 function setMsg(el, text, type = '') {
   el.textContent = text;
@@ -96,8 +100,57 @@ function headers(withJson = true) {
   return h;
 }
 
+function normalizeSearchText(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function getHistorySelectionCheckboxes() {
+  return Array.from(historyRows.querySelectorAll('input[data-booking-id]'));
+}
+
+function updateHistoryBulkControls() {
+  const checkboxes = getHistorySelectionCheckboxes();
+  const selectedCount = checkboxes.filter((checkbox) => checkbox.checked).length;
+
+  if (historySelectAll) {
+    historySelectAll.disabled = checkboxes.length === 0;
+    historySelectAll.checked = checkboxes.length > 0 && selectedCount === checkboxes.length;
+    historySelectAll.indeterminate = selectedCount > 0 && selectedCount < checkboxes.length;
+  }
+
+  if (historyDeleteSelectedBtn) {
+    historyDeleteSelectedBtn.disabled = selectedCount === 0;
+    historyDeleteSelectedBtn.textContent = selectedCount > 0 ? `Delete Selected (${selectedCount})` : 'Delete Selected';
+  }
+}
+
+function applyStudentFilter() {
+  const query = normalizeSearchText(studentsSearchInput ? studentsSearchInput.value : '');
+  if (!query) {
+    renderStudents(allStudents);
+    return;
+  }
+
+  const filtered = allStudents.filter((student) => {
+    const name = normalizeSearchText(student.fullName);
+    const contact = normalizeSearchText(student.contactNumber);
+    const remark = normalizeSearchText(student.remark);
+    return name.includes(query) || contact.includes(query) || remark.includes(query);
+  });
+
+  renderStudents(filtered);
+}
+
 function renderStudents(students) {
   studentsList.innerHTML = '';
+
+  if (!students.length) {
+    const empty = document.createElement('div');
+    empty.className = 'item-sub';
+    empty.textContent = 'No matching students found.';
+    studentsList.appendChild(empty);
+    return;
+  }
 
   students.forEach((student) => {
     const item = document.createElement('div');
@@ -206,6 +259,17 @@ function renderHistoryRows(bookings) {
 
   bookings.forEach((booking) => {
     const row = document.createElement('tr');
+    row.dataset.bookingId = String(booking.bookingId);
+    row.dataset.studentName = booking.studentName || '';
+
+    const selectCell = document.createElement('td');
+    const selectCheckbox = document.createElement('input');
+    selectCheckbox.type = 'checkbox';
+    selectCheckbox.dataset.bookingId = String(booking.bookingId);
+    selectCheckbox.setAttribute('aria-label', `Select booking for ${booking.studentName || 'student'}`);
+    selectCell.appendChild(selectCheckbox);
+    row.appendChild(selectCell);
+
     const cells = [
       formatDate(booking.date),
       formatTime(booking.time),
@@ -248,6 +312,7 @@ function renderHistoryRows(bookings) {
         if (!historyRows.querySelector('tr')) {
           renderNoHistoryRowsState();
         }
+        updateHistoryBulkControls();
         setMsg(historyMsg, 'Booking deleted successfully.', 'success');
       } catch (error) {
         deleteBtn.disabled = false;
@@ -260,15 +325,18 @@ function renderHistoryRows(bookings) {
 
     historyRows.appendChild(row);
   });
+
+  updateHistoryBulkControls();
 }
 
 function renderNoHistoryRowsState() {
   const row = document.createElement('tr');
   const cell = document.createElement('td');
-  cell.colSpan = 8;
+  cell.colSpan = 9;
   cell.textContent = 'No booking history found for this filter.';
   row.appendChild(cell);
   historyRows.appendChild(row);
+  updateHistoryBulkControls();
 }
 
 function renderWeekOptions(availableWeeks, selectedWeek) {
@@ -324,7 +392,8 @@ async function loadStudents() {
   if (!response.ok) {
     throw new Error(payload.error || 'Unable to load students.');
   }
-  renderStudents(payload.students || []);
+  allStudents = payload.students || [];
+  applyStudentFilter();
 }
 
 async function showManageView() {
@@ -430,6 +499,95 @@ historyRefreshBtn.addEventListener('click', async () => {
     setMsg(historyMsg, error.message, 'error');
   }
 });
+
+if (studentsSearchInput) {
+  studentsSearchInput.addEventListener('input', () => {
+    applyStudentFilter();
+  });
+}
+
+historyRows.addEventListener('change', (event) => {
+  const checkbox = event.target;
+  if (!(checkbox instanceof HTMLInputElement)) {
+    return;
+  }
+
+  if (!checkbox.dataset.bookingId) {
+    return;
+  }
+
+  updateHistoryBulkControls();
+});
+
+if (historySelectAll) {
+  historySelectAll.addEventListener('change', () => {
+    const checkboxes = getHistorySelectionCheckboxes();
+    checkboxes.forEach((checkbox) => {
+      checkbox.checked = historySelectAll.checked;
+    });
+    updateHistoryBulkControls();
+  });
+}
+
+if (historyDeleteSelectedBtn) {
+  historyDeleteSelectedBtn.addEventListener('click', async () => {
+    const selectedRows = getHistorySelectionCheckboxes()
+      .filter((checkbox) => checkbox.checked)
+      .map((checkbox) => ({
+        id: Number(checkbox.dataset.bookingId),
+        row: checkbox.closest('tr')
+      }))
+      .filter((entry) => entry.id && entry.row);
+
+    if (!selectedRows.length) {
+      setMsg(historyMsg, 'Please tick booking rows to delete.', 'error');
+      return;
+    }
+
+    if (!window.confirm(`Delete ${selectedRows.length} selected booking(s)?`)) {
+      return;
+    }
+
+    let deletedCount = 0;
+    let failedCount = 0;
+
+    try {
+      historyDeleteSelectedBtn.disabled = true;
+      setMsg(historyMsg, `Deleting ${selectedRows.length} booking(s)...`, 'success');
+
+      for (const entry of selectedRows) {
+        const response = await fetch(`/api/admin/bookings/${entry.id}`, {
+          method: 'DELETE',
+          headers: headers(false)
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          failedCount += 1;
+          continue;
+        }
+
+        deletedCount += 1;
+        entry.row.remove();
+        void payload;
+      }
+
+      if (!historyRows.querySelector('tr')) {
+        renderNoHistoryRowsState();
+      } else {
+        updateHistoryBulkControls();
+      }
+
+      if (failedCount > 0) {
+        setMsg(historyMsg, `Deleted ${deletedCount} booking(s). ${failedCount} failed, please refresh and retry.`, 'error');
+      } else {
+        setMsg(historyMsg, `Deleted ${deletedCount} booking(s).`, 'success');
+      }
+    } catch (error) {
+      setMsg(historyMsg, error.message, 'error');
+      updateHistoryBulkControls();
+    }
+  });
+}
 
 historyWeek.addEventListener('change', () => {
   void loadHistory().catch((error) => {

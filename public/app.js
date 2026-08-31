@@ -22,6 +22,224 @@ const studentGate = document.getElementById('studentGate');
 const studentNameInput = document.getElementById('studentNameInput');
 const studentNameSubmit = document.getElementById('studentNameSubmit');
 const studentGateMessage = document.getElementById('studentGateMessage');
+const languageToggle = document.getElementById('languageToggle');
+const studentGateTitle = document.getElementById('studentGateTitle');
+const studentGateDesc = document.getElementById('studentGateDesc');
+const confirmTitle = document.getElementById('confirmTitle');
+const confirmDesc = document.getElementById('confirmDesc');
+const selectedModalTitle = document.getElementById('selectedModalTitle');
+const selectedHelpText = document.getElementById('selectedHelpText');
+const heroEyebrow = document.getElementById('heroEyebrow');
+const heroTitle = document.getElementById('heroTitle');
+const proceedNote = document.getElementById('proceedNote');
+const locationAeraTab = document.getElementById('locationAeraTab');
+const locationHelixTab = document.getElementById('locationHelixTab');
+const busATab = document.getElementById('busATab');
+const busBTab = document.getElementById('busBTab');
+
+const LANGUAGE_KEY = 'novashuttle_language';
+
+const I18N = {
+  en: {
+    documentTitle: 'NovaHaus Shuttle Booking',
+    studentGateTitle: 'Enter Your Full Name',
+    studentGateDesc: 'Please enter your full name exactly as registered by admin (automatically converted to uppercase without spaces).',
+    studentNamePlaceholder: 'e.g. JOHNTANWEIMING',
+    continue: 'Continue',
+    confirmTitle: 'Confirm Weekly Booking',
+    confirmDesc: 'Please review your selected timeslots. You can go back and edit before final submit.',
+    confirmBack: 'Back and Edit',
+    confirmSubmit: 'Confirm and Submit',
+    selectedModalTitle: 'Your Selected Timeslots',
+    close: 'Close',
+    selectedHelp: 'To change, click another slot in the same direction. To delete, click Remove.',
+    heroEyebrow: 'NovaHaus Property Management',
+    heroTitle: 'Shuttle Service Booking',
+    checkTimeslot: 'Check Timeslot',
+    logout: 'Logout',
+    aeraResidence: 'Aera Residence',
+    helixResidence: 'Helix Residence',
+    proceedNote: 'Select timeslots for Monday to Friday, review in Selected Timeslots, then proceed to confirm.',
+    proceed: 'Proceed',
+    studentDetails: 'Student Details',
+    loadingWeeklySchedule: 'Loading weekly schedule...',
+    studentVerificationFailed: 'Student verification failed.',
+    locationAeraShort: 'Aera Residence',
+    locationHelixShort: 'Helix Residence',
+    routeOutbound: 'Bus {bus} - 🚌 {location} → Taylor University',
+    routeInbound: 'Bus {bus} - 🏫 Taylor University → {location}',
+    toUniversity: 'To University',
+    backToResidence: 'Back to Residence',
+    clickChangeFirst: 'Click Change my time on this day first.',
+    removedSlotOn: 'Removed {direction} slot on {day}.',
+    daySkipped: 'Day skipped.',
+    undoSkip: 'Undo Skip',
+    skipRemovedFor: 'Skip removed for {day}.',
+    noSlotYet: 'No slot selected yet.',
+    pending: 'Pending',
+    submitted: 'Submitted',
+    remove: 'Remove',
+    loadingSelectedTimeslots: 'Loading selected timeslots...',
+    cancelChange: 'Cancel Change',
+    changeMyTime: 'Change my time',
+    skipThisDay: 'Skip this day',
+    addTimesForDay: 'Add times for this day',
+    cancelledChangesFor: 'Cancelled changes for {day}.',
+    changeModeEnabledFor: 'Change mode enabled for {day}. Select new slot(s) or skip this day.',
+    clickChangeToUpdateSkip: 'Click Change my time on this day first to update or skip it.',
+    skippedDay: 'Skipped {day}.',
+    clickChangeToUpdateDay: 'Click Change my time on this day first to update this day.',
+    submittedLockedWeek: 'Your submitted timeslots are locked for this week. Other slots are disabled until next weekly reset.',
+    chooseTimeslotsFirst: 'Choose timeslots first, then click Proceed to confirm all selections.',
+    bookingSubmittedClickChange: 'Your booking is already submitted. Click Change my time on this day to edit.',
+    dayIsSkippedChooseSlots: 'This day is skipped. Click Add times for this day to choose slots for {day}.',
+    removedTimeOnDay: 'Removed {time} on {day}.',
+    selectedTimeOnDay: 'Selected {time} on {day}.',
+    skipped: 'Skipped',
+    notSelectedToUniversity: 'To University: Not selected',
+    notSelectedBackResidence: 'Back to Residence: Not selected',
+    clickChangeToUpdate: 'Click Change my time on a day to update your timeslot.',
+    chooseAtLeastOneOrSkipDay: 'Please choose at least one timeslot or skip {day}.',
+    chooseAtLeastOneOrSkipDays: 'Please choose at least one timeslot or skip these days: {days}',
+    chooseAtLeastOneWeek: 'Please choose at least one timeslot in the week before proceeding.',
+    submittingWeeklySelections: 'Submitting your weekly selections...',
+    unableToSubmitSelectedTrips: 'Unable to submit selected trips.',
+    changesSaved: 'Timeslot changes saved successfully.',
+    bookingConfirmedCount: 'Booking confirmed for {count} timeslot(s).',
+    pleaseEnterFullName: 'Please enter your full name.',
+    verified: 'Verified.',
+    unableToLoadSubmittedBookings: 'Unable to load your submitted bookings.'
+  },
+  zh: {
+    documentTitle: 'NovaHaus 校车预约',
+    studentGateTitle: '请输入你的全名',
+    studentGateDesc: '请输入与管理员登记完全一致的全名（系统会自动转为大写并移除空格）。',
+    studentNamePlaceholder: '例如：JOHNTANWEIMING',
+    continue: '继续',
+    confirmTitle: '确认本周预约',
+    confirmDesc: '请先确认你选择的时段，提交前可以返回修改。',
+    confirmBack: '返回修改',
+    confirmSubmit: '确认提交',
+    selectedModalTitle: '你已选择的时段',
+    close: '关闭',
+    selectedHelp: '如需更改，请点击同方向的其他时段；如需删除，请点击 Remove。',
+    heroEyebrow: 'NovaHaus 物业管理',
+    heroTitle: '校车服务预约',
+    checkTimeslot: '查看时段',
+    logout: '登出',
+    aeraResidence: 'Aera 公寓',
+    helixResidence: 'Helix 公寓',
+    proceedNote: '请选择周一到周五的时段，在已选时段中检查后再继续确认。',
+    proceed: '继续',
+    studentDetails: '学生资料',
+    loadingWeeklySchedule: '正在加载本周时刻表...',
+    studentVerificationFailed: '学生验证失败。',
+    locationAeraShort: 'Aera 公寓',
+    locationHelixShort: 'Helix 公寓',
+    routeOutbound: '巴士 {bus} - 🚌 {location} → 泰莱大学',
+    routeInbound: '巴士 {bus} - 🏫 泰莱大学 → {location}',
+    toUniversity: '去大学',
+    backToResidence: '回公寓',
+    clickChangeFirst: '请先点击 Change my time 才能修改这一天。',
+    removedSlotOn: '已移除 {day} 的 {direction} 时段。',
+    daySkipped: '这一天已跳过。',
+    undoSkip: '取消跳过',
+    skipRemovedFor: '已取消 {day} 的跳过。',
+    noSlotYet: '尚未选择时段。',
+    pending: '待提交',
+    submitted: '已提交',
+    remove: '删除',
+    loadingSelectedTimeslots: '正在加载已选时段...',
+    cancelChange: '取消更改',
+    changeMyTime: '更改我的时段',
+    skipThisDay: '跳过这一天',
+    addTimesForDay: '为这一天添加时段',
+    cancelledChangesFor: '已取消 {day} 的更改。',
+    changeModeEnabledFor: '已为 {day} 开启更改模式。请选择新时段或跳过这一天。',
+    clickChangeToUpdateSkip: '请先点击 Change my time 才能修改或跳过这一天。',
+    skippedDay: '已跳过 {day}。',
+    clickChangeToUpdateDay: '请先点击 Change my time 才能修改这一天。',
+    submittedLockedWeek: '你本周已提交的时段已锁定，其他时段会禁用直到下次周重置。',
+    chooseTimeslotsFirst: '请先选择时段，然后点击继续进行确认。',
+    bookingSubmittedClickChange: '你已提交预约。请点击 Change my time 修改当天时段。',
+    dayIsSkippedChooseSlots: '这一天已跳过。点击 Add times for this day 为 {day} 选择时段。',
+    removedTimeOnDay: '已移除 {day} 的 {time}。',
+    selectedTimeOnDay: '已选择 {day} 的 {time}。',
+    skipped: '已跳过',
+    notSelectedToUniversity: '去大学：未选择',
+    notSelectedBackResidence: '回公寓：未选择',
+    clickChangeToUpdate: '请先在某一天点击 Change my time 才能修改时段。',
+    chooseAtLeastOneOrSkipDay: '请至少选择一个时段，或跳过 {day}。',
+    chooseAtLeastOneOrSkipDays: '请至少选择一个时段，或跳过这些天：{days}',
+    chooseAtLeastOneWeek: '请先在本周至少选择一个时段再继续。',
+    submittingWeeklySelections: '正在提交你的本周选择...',
+    unableToSubmitSelectedTrips: '无法提交所选时段。',
+    changesSaved: '时段更改已成功保存。',
+    bookingConfirmedCount: '已确认预约 {count} 个时段。',
+    pleaseEnterFullName: '请输入你的全名。',
+    verified: '验证成功。',
+    unableToLoadSubmittedBookings: '无法加载你已提交的预约。'
+  }
+};
+
+let activeLang = localStorage.getItem(LANGUAGE_KEY) || 'en';
+if (!Object.prototype.hasOwnProperty.call(I18N, activeLang)) {
+  activeLang = 'en';
+}
+
+function t(key, vars = {}) {
+  const source = (I18N[activeLang] && I18N[activeLang][key]) || I18N.en[key] || key;
+  return source.replace(/\{(\w+)\}/g, (_match, tokenName) => String(vars[tokenName] ?? ''));
+}
+
+function getLocale() {
+  return activeLang === 'zh' ? 'zh-CN' : 'en-US';
+}
+
+function applyLanguage() {
+  document.documentElement.lang = activeLang === 'zh' ? 'zh-CN' : 'en';
+  document.title = t('documentTitle');
+
+  if (languageToggle) {
+    const isZh = activeLang === 'zh';
+    languageToggle.classList.toggle('is-zh', isZh);
+    languageToggle.classList.toggle('is-en', !isZh);
+    languageToggle.setAttribute('aria-pressed', isZh ? 'true' : 'false');
+  }
+
+  if (studentGateTitle) studentGateTitle.textContent = t('studentGateTitle');
+  if (studentGateDesc) studentGateDesc.textContent = t('studentGateDesc');
+  if (studentNameInput) studentNameInput.placeholder = t('studentNamePlaceholder');
+  if (studentNameSubmit) studentNameSubmit.textContent = t('continue');
+  if (confirmTitle) confirmTitle.textContent = t('confirmTitle');
+  if (confirmDesc) confirmDesc.textContent = t('confirmDesc');
+  if (confirmBackBtn) confirmBackBtn.textContent = t('confirmBack');
+  if (confirmSubmitBtn) confirmSubmitBtn.textContent = t('confirmSubmit');
+  if (selectedModalTitle) selectedModalTitle.textContent = t('selectedModalTitle');
+  if (closeSelectedModalBtn) closeSelectedModalBtn.textContent = t('close');
+  if (selectedHelpText) selectedHelpText.textContent = t('selectedHelp');
+  if (heroEyebrow) heroEyebrow.textContent = t('heroEyebrow');
+  if (heroTitle) heroTitle.textContent = t('heroTitle');
+  if (viewSelectionsBtn) viewSelectionsBtn.textContent = t('checkTimeslot');
+  if (studentLogoutBtn) studentLogoutBtn.textContent = t('logout');
+  if (locationAeraTab) locationAeraTab.textContent = t('aeraResidence');
+  if (locationHelixTab) locationHelixTab.textContent = t('helixResidence');
+  if (busATab) busATab.textContent = 'Bus A';
+  if (busBTab) busBTab.textContent = 'Bus B';
+  if (proceedNote) proceedNote.textContent = t('proceedNote');
+  if (proceedBtn) proceedBtn.textContent = t('proceed');
+
+  renderStudentInfo();
+  if (currentWeekDays.length) {
+    renderWeek(currentWeekDays);
+  }
+  if (confirmModal && !confirmModal.classList.contains('hidden')) {
+    renderConfirmSummary();
+  }
+  if (selectedModal && !selectedModal.classList.contains('hidden')) {
+    renderSelectedSummary();
+  }
+}
 
 let activeBus = 'A';
 let activeLocation = 'AERA';
@@ -56,14 +274,14 @@ function toApiDate(date) {
 
 function toDisplayTime(hhmm) {
   const [hRaw, mRaw] = hhmm.split(':').map(Number);
-  const ampm = hRaw >= 12 ? 'pm' : 'am';
+  const ampm = activeLang === 'zh' ? (hRaw >= 12 ? '下午' : '上午') : (hRaw >= 12 ? 'pm' : 'am');
   const hour = hRaw % 12 || 12;
   return `${hour}:${String(mRaw).padStart(2, '0')}${ampm}`;
 }
 
 function toDisplayDay(date) {
   const d = new Date(`${date}T00:00:00`);
-  return d.toLocaleDateString('en-US', {
+  return d.toLocaleDateString(getLocale(), {
     weekday: 'long',
     month: 'short',
     day: 'numeric'
@@ -71,18 +289,18 @@ function toDisplayDay(date) {
 }
 
 function busRouteTitles(bus) {
-  const locationName = activeLocation === 'HELIX' ? 'Helix Residence' : 'Aera Residence';
+  const locationName = activeLocation === 'HELIX' ? t('locationHelixShort') : t('locationAeraShort');
 
   if (bus === 'A') {
     return {
-      outbound: `Bus A - 🚌 ${locationName} → Taylor University`,
-      inbound: `Bus A - 🏫 Taylor University → ${locationName}`
+      outbound: t('routeOutbound', { bus: 'A', location: locationName }),
+      inbound: t('routeInbound', { bus: 'A', location: locationName })
     };
   }
 
   return {
-    outbound: `Bus B - 🚌 ${locationName} → Taylor University`,
-    inbound: `Bus B - 🏫 Taylor University → ${locationName}`
+    outbound: t('routeOutbound', { bus: 'B', location: locationName }),
+    inbound: t('routeInbound', { bus: 'B', location: locationName })
   };
 }
 
@@ -113,7 +331,7 @@ async function fetchWeekTrips() {
     return weekTripsCache.get(cacheKey);
   }
 
-  setMessage('Loading weekly schedule...');
+  setMessage(t('loadingWeeklySchedule'));
 
   const response = await fetch(
     `/api/week-trips?date=${encodeURIComponent(date)}&location=${encodeURIComponent(activeLocation)}`
@@ -140,7 +358,7 @@ async function verifyStudent(fullName) {
 
   const payload = await response.json();
   if (!response.ok) {
-    throw new Error(payload.error || 'Student verification failed.');
+    throw new Error(payload.error || t('studentVerificationFailed'));
   }
 
   return payload.student || { fullName, contactNumber: '' };
@@ -158,7 +376,7 @@ function renderStudentInfo() {
 
     const label = document.createElement('div');
     label.className = 'student-info-label';
-    label.textContent = 'Student Details';
+    label.textContent = t('studentDetails');
 
     const value = document.createElement('div');
     value.className = 'student-info-value';
@@ -179,6 +397,10 @@ function setStudentAccess(student) {
 function setGateMessage(text, type = 'error') {
   studentGateMessage.textContent = text;
   studentGateMessage.className = `modal-message ${type}`;
+}
+
+function normalizeStudentGateName(name) {
+  return String(name || '').toUpperCase().replace(/\s+/g, '');
 }
 
 function clearWeek() {
@@ -304,7 +526,7 @@ function updateProceedState() {
 }
 
 function directionLabel(direction) {
-  return direction === 'OUTBOUND' ? 'To University' : 'Back to Residence';
+  return direction === 'OUTBOUND' ? t('toUniversity') : t('backToResidence');
 }
 
 async function loadSubmittedWeekBookings(forceReload = false) {
@@ -323,7 +545,7 @@ async function loadSubmittedWeekBookings(forceReload = false) {
   );
   const payload = await response.json();
   if (!response.ok) {
-    throw new Error(payload.error || 'Unable to load your submitted bookings.');
+    throw new Error(payload.error || t('unableToLoadSubmittedBookings'));
   }
 
   submittedTripsByKey.clear();
@@ -348,7 +570,7 @@ async function loadSubmittedWeekBookings(forceReload = false) {
 
 function removeSelectedTrip(date, direction) {
   if (hasSubmittedSelections() && !isEditableDate(date)) {
-    setMessage('Click Change my time on this day first.', 'error');
+    setMessage(t('clickChangeFirst'), 'error');
     return;
   }
 
@@ -359,7 +581,7 @@ function removeSelectedTrip(date, direction) {
   }
 
   selectedTripsByKey.delete(key);
-  setMessage(`Removed ${directionLabel(direction)} slot on ${toDisplayDay(date)}.`, 'success');
+  setMessage(t('removedSlotOn', { direction: directionLabel(direction), day: toDisplayDay(date) }), 'success');
   rerenderDayByDate(date);
   renderSelectedSummary();
   updateProceedState();
@@ -384,19 +606,19 @@ function renderSelectedSummary() {
     if (skippedDates.has(date)) {
       const skippedText = document.createElement('p');
       skippedText.className = 'selected-skipped';
-      skippedText.textContent = 'Day skipped.';
+      skippedText.textContent = t('daySkipped');
 
       const undoBtn = document.createElement('button');
       undoBtn.type = 'button';
       undoBtn.className = 'selected-undo';
-      undoBtn.textContent = 'Undo Skip';
+      undoBtn.textContent = t('undoSkip');
       undoBtn.addEventListener('click', () => {
         if (hasSubmittedSelections() && !isEditableDate(date)) {
-          setMessage('Click Change my time on this day first.', 'error');
+          setMessage(t('clickChangeFirst'), 'error');
           return;
         }
         skippedDates.delete(date);
-        setMessage(`Skip removed for ${toDisplayDay(date)}.`, 'success');
+        setMessage(t('skipRemovedFor', { day: toDisplayDay(date) }), 'success');
         rerenderDayByDate(date);
         renderSelectedSummary();
         updateProceedState();
@@ -418,7 +640,7 @@ function renderSelectedSummary() {
     if (!outbound && !inbound) {
       const emptyText = document.createElement('p');
       emptyText.className = 'selected-empty';
-      emptyText.textContent = 'No slot selected yet.';
+      emptyText.textContent = t('noSlotYet');
       dayBox.appendChild(emptyText);
       selectedRows.appendChild(dayBox);
       return;
@@ -438,7 +660,7 @@ function renderSelectedSummary() {
       const text = document.createElement('span');
       text.className = 'selected-slot-text';
       const isPending = pendingOutbound === trip || pendingInbound === trip;
-      const prefix = isPending ? 'Pending' : 'Submitted';
+      const prefix = isPending ? t('pending') : t('submitted');
       text.textContent = `${prefix} - ${directionLabel(direction)}: ${toDisplayTime(trip.time)} (${trip.location} Bus ${trip.bus})`;
 
       row.appendChild(text);
@@ -447,7 +669,7 @@ function renderSelectedSummary() {
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
         removeBtn.className = 'selected-remove';
-        removeBtn.textContent = 'Remove';
+        removeBtn.textContent = t('remove');
         removeBtn.addEventListener('click', () => {
           removeSelectedTrip(date, direction);
         });
@@ -472,7 +694,7 @@ function closeConfirmModal() {
 }
 
 function openSelectedModal() {
-  setMessage('Loading selected timeslots...', 'success');
+  setMessage(t('loadingSelectedTimeslots'), 'success');
   void loadSubmittedWeekBookings()
     .then(() => {
       renderSelectedSummary();
@@ -507,11 +729,15 @@ function renderDay(dayData) {
   const changeBtn = dayNode.querySelector('.change-btn');
   const skipBtn = dayNode.querySelector('.skip-btn');
   const date = dayData.date;
+  const addTimesBtn = dayNode.querySelector('.add-times-btn');
+
+  skipBtn.textContent = t('skipThisDay');
+  addTimesBtn.textContent = t('addTimesForDay');
 
   if (hasSubmittedSelections()) {
     changeBtn.hidden = false;
     changeBtn.classList.toggle('is-editing', isEditableDate(date));
-    changeBtn.textContent = isEditableDate(date) ? 'Cancel Change' : 'Change my time';
+    changeBtn.textContent = isEditableDate(date) ? t('cancelChange') : t('changeMyTime');
     skipBtn.hidden = !isEditableDate(date);
 
     changeBtn.addEventListener('click', () => {
@@ -521,13 +747,13 @@ function renderDay(dayData) {
         selectedTripsByKey.delete(selectionKey(date, 'OUTBOUND'));
         selectedTripsByKey.delete(selectionKey(date, 'INBOUND'));
         skipBtn.hidden = true;
-        setMessage(`Cancelled changes for ${toDisplayDay(date)}.`, 'success');
+        setMessage(t('cancelledChangesFor', { day: toDisplayDay(date) }), 'success');
       } else {
         editableDates.add(date);
         selectedTripsByKey.delete(selectionKey(date, 'OUTBOUND'));
         selectedTripsByKey.delete(selectionKey(date, 'INBOUND'));
         skipBtn.hidden = false;
-        setMessage(`Change mode enabled for ${toDisplayDay(date)}. Select new slot(s) or skip this day.`, 'success');
+        setMessage(t('changeModeEnabledFor', { day: toDisplayDay(date) }), 'success');
       }
 
       rerenderDayByDate(date);
@@ -544,7 +770,7 @@ function renderDay(dayData) {
 
   skipBtn.addEventListener('click', () => {
     if (hasSubmittedSelections() && !isEditableDate(dayData.date)) {
-      setMessage('Click Change my time on this day first to update or skip it.', 'error');
+      setMessage(t('clickChangeToUpdateSkip'), 'error');
       return;
     }
 
@@ -552,12 +778,12 @@ function renderDay(dayData) {
     clearDaySelections(dayData.date);
     applyDaySkipState(dayNode, true);
     updateProceedState();
-    setMessage(`Skipped ${toDisplayDay(dayData.date)}.`, 'success');
+    setMessage(t('skippedDay', { day: toDisplayDay(dayData.date) }), 'success');
   });
 
-  dayNode.querySelector('.add-times-btn').addEventListener('click', () => {
+  addTimesBtn.addEventListener('click', () => {
     if (hasSubmittedSelections() && !isEditableDate(dayData.date)) {
-      setMessage('Click Change my time on this day first to update this day.', 'error');
+      setMessage(t('clickChangeToUpdateDay'), 'error');
       return;
     }
 
@@ -602,7 +828,7 @@ function renderWeek(days) {
   updateProceedState();
 
   if (hasSubmittedSelections()) {
-    setMessage('Your submitted timeslots are locked for this week. Other slots are disabled until next weekly reset.', 'success');
+    setMessage(t('submittedLockedWeek'), 'success');
   }
 }
 
@@ -628,7 +854,7 @@ async function loadWeekTrips() {
     currentWeekDays = days;
     renderWeek(days);
     if (!hasSubmittedSelections()) {
-      setMessage('Choose timeslots first, then click Proceed to confirm all selections.', 'success');
+      setMessage(t('chooseTimeslotsFirst'), 'success');
     }
   } catch (error) {
     setMessage(error.message, 'error');
@@ -637,13 +863,13 @@ async function loadWeekTrips() {
 
 function toggleTripSelection(trip) {
   if (hasSubmittedSelections() && !isEditableDate(trip.date)) {
-    setMessage('Your booking is already submitted. Click Change my time on this day to edit.', 'error');
+    setMessage(t('bookingSubmittedClickChange'), 'error');
     return;
   }
 
   const date = trip.date;
   if (skippedDates.has(date)) {
-    setMessage(`This day is skipped. Click Add times for this day to choose slots for ${toDisplayDay(date)}.`, 'error');
+    setMessage(t('dayIsSkippedChooseSlots', { day: toDisplayDay(date) }), 'error');
     return;
   }
 
@@ -652,7 +878,7 @@ function toggleTripSelection(trip) {
 
   if (existing && existing.id === trip.id) {
     selectedTripsByKey.delete(key);
-    setMessage(`Removed ${toDisplayTime(trip.time)} on ${toDisplayDay(trip.date)}.`, 'success');
+    setMessage(t('removedTimeOnDay', { time: toDisplayTime(trip.time), day: toDisplayDay(trip.date) }), 'success');
   } else {
     selectedTripsByKey.set(key, {
       id: trip.id,
@@ -662,7 +888,7 @@ function toggleTripSelection(trip) {
       bus: trip.bus,
       location: trip.location
     });
-    setMessage(`Selected ${toDisplayTime(trip.time)} on ${toDisplayDay(trip.date)}.`, 'success');
+    setMessage(t('selectedTimeOnDay', { time: toDisplayTime(trip.time), day: toDisplayDay(trip.date) }), 'success');
   }
 
   rerenderDayByDate(trip.date);
@@ -713,17 +939,17 @@ function renderConfirmSummary() {
     if (line.skipped) {
       const skipped = document.createElement('div');
       skipped.className = 'confirm-line skipped';
-      skipped.textContent = 'Skipped';
+      skipped.textContent = t('skipped');
       row.appendChild(skipped);
     } else {
       const outbound = document.createElement('div');
       outbound.className = `confirm-line ${line.outbound ? '' : 'empty'}`.trim();
-      outbound.textContent = line.outbound || 'To University: Not selected';
+      outbound.textContent = line.outbound || t('notSelectedToUniversity');
       row.appendChild(outbound);
 
       const inbound = document.createElement('div');
       inbound.className = `confirm-line ${line.inbound ? '' : 'empty'}`.trim();
-      inbound.textContent = line.inbound || 'Back to Residence: Not selected';
+      inbound.textContent = line.inbound || t('notSelectedBackResidence');
       row.appendChild(inbound);
     }
 
@@ -740,7 +966,7 @@ function openConfirmModal() {
 function validateSelectionsBeforeSubmit() {
   if (hasSubmittedSelections()) {
     if (editableDates.size === 0) {
-      return 'Click Change my time on a day to update your timeslot.';
+      return t('clickChangeToUpdate');
     }
 
     for (const date of editableDates) {
@@ -751,7 +977,7 @@ function validateSelectionsBeforeSubmit() {
       const out = selectedTripsByKey.get(selectionKey(date, 'OUTBOUND'));
       const back = selectedTripsByKey.get(selectionKey(date, 'INBOUND'));
       if (!out && !back) {
-        return `Please choose at least one timeslot or skip ${toDisplayDay(date)}.`;
+        return t('chooseAtLeastOneOrSkipDay', { day: toDisplayDay(date) });
       }
     }
 
@@ -761,11 +987,11 @@ function validateSelectionsBeforeSubmit() {
   const incompleteDays = activeWeekDates.filter((date) => !isDayCompleteOrSkipped(date));
   if (incompleteDays.length > 0) {
     const dayText = incompleteDays.map((date) => toDisplayDay(date)).join(', ');
-    return `Please choose at least one timeslot or skip these days: ${dayText}`;
+    return t('chooseAtLeastOneOrSkipDays', { days: dayText });
   }
 
   if (selectedTripsByKey.size === 0) {
-    return 'Please choose at least one timeslot in the week before proceeding.';
+    return t('chooseAtLeastOneWeek');
   }
 
   return '';
@@ -791,7 +1017,7 @@ async function confirmAndSubmitSelectedTrips() {
   try {
     proceedBtn.disabled = true;
     confirmSubmitBtn.disabled = true;
-    setConfirmMessage('Submitting your weekly selections...', 'success');
+    setConfirmMessage(t('submittingWeeklySelections'), 'success');
 
     let response;
     const inChangeMode = hasSubmittedSelections();
@@ -834,7 +1060,7 @@ async function confirmAndSubmitSelectedTrips() {
     const payload = await response.json();
 
     if (!response.ok) {
-      throw new Error(payload.error || 'Unable to submit selected trips.');
+      throw new Error(payload.error || t('unableToSubmitSelectedTrips'));
     }
 
     selectedTripsByKey.clear();
@@ -844,9 +1070,9 @@ async function confirmAndSubmitSelectedTrips() {
     await loadSubmittedWeekBookings(true);
     closeConfirmModal();
     if (inChangeMode) {
-      setMessage('Timeslot changes saved successfully.', 'success');
+      setMessage(t('changesSaved'), 'success');
     } else {
-      setMessage(`Booking confirmed for ${payload.bookedCount || 0} timeslot(s).`, 'success');
+      setMessage(t('bookingConfirmedCount', { count: payload.bookedCount || 0 }), 'success');
     }
     await loadWeekTrips();
   } catch (error) {
@@ -895,20 +1121,36 @@ locationTabs.forEach((tab) => {
   });
 });
 
+if (languageToggle) {
+  languageToggle.addEventListener('click', () => {
+    activeLang = activeLang === 'en' ? 'zh' : 'en';
+    localStorage.setItem(LANGUAGE_KEY, activeLang);
+    applyLanguage();
+  });
+}
+
 studentNameSubmit.addEventListener('click', async () => {
-  const fullName = studentNameInput.value.trim();
+  const fullName = normalizeStudentGateName(studentNameInput.value);
+  studentNameInput.value = fullName;
   if (!fullName) {
-    setGateMessage('Please enter your full name.');
+    setGateMessage(t('pleaseEnterFullName'));
     return;
   }
 
   try {
     const student = await verifyStudent(fullName);
     setStudentAccess(student);
-    setGateMessage('Verified.', 'success');
+    setGateMessage(t('verified'), 'success');
     await loadWeekTrips();
   } catch (error) {
     setGateMessage(error.message, 'error');
+  }
+});
+
+studentNameInput.addEventListener('input', () => {
+  const normalized = normalizeStudentGateName(studentNameInput.value);
+  if (studentNameInput.value !== normalized) {
+    studentNameInput.value = normalized;
   }
 });
 
@@ -957,6 +1199,7 @@ confirmModal.addEventListener('click', (event) => {
 
 setActiveLocation('AERA');
 setActiveBus('A');
+applyLanguage();
 updateProceedState();
 void initStudentGate().then(async () => {
   if (studentGate.classList.contains('hidden')) {
