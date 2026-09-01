@@ -1,5 +1,5 @@
-const BUS_A_CAPACITY = 14;
-const BUS_B_CAPACITY = 7;
+const BUS_A_CAPACITY = 11;
+const BUS_B_CAPACITY = 6;
 
 const LOCATION_CODES = ['AERA', 'HELIX'];
 
