@@ -21,7 +21,8 @@ const {
   deleteBookingById,
   listStudentWeekBookings,
   replaceStudentDayBookings,
-  listDriverWeekView
+  listDriverWeekView,
+  invalidateDriverWeekEnsureCache
 } = require('./src/db');
 
 const VALID_LOCATIONS = new Set(['AERA', 'HELIX']);
@@ -143,6 +144,7 @@ function setCachedWeekTrips(cacheKey, payload) {
 function invalidateWeekTripsCache() {
   weekTripsCache.clear();
   driverViewCache.clear();
+  invalidateDriverWeekEnsureCache();
 }
 
 function buildDriverViewCacheKey({ endpoint, location, bus, weekStart, includeWeeks }) {

@@ -19,6 +19,8 @@ const supabase = supabaseUrl && supabaseServiceRoleKey
     }
   })
   : null;
+const DRIVER_WEEK_ENSURE_TTL_MS = 5 * 60 * 1000;
+const ensuredDriverWeeks = new Map();
 
 function ensureSupabaseConfigured() {
   if (!supabase) {
@@ -39,6 +41,43 @@ function formatDate(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
     date.getDate()
   ).padStart(2, '0')}`;
+}
+
+function buildWeekDates(weekStart) {
+  const monday = dateFromIso(weekStart);
+  const dates = [];
+  for (let i = 0; i < 5; i += 1) {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + i);
+    dates.push(formatDate(date));
+  }
+  return dates;
+}
+
+function shouldEnsureDriverWeek(weekStart) {
+  const expiresAt = ensuredDriverWeeks.get(weekStart);
+  if (!expiresAt) {
+    return true;
+  }
+  if (Date.now() > expiresAt) {
+    ensuredDriverWeeks.delete(weekStart);
+    return true;
+  }
+  return false;
+}
+
+async function ensureDriverWeekTrips(weekStart) {
+  if (!shouldEnsureDriverWeek(weekStart)) {
+    return;
+  }
+
+  const weekDates = buildWeekDates(weekStart);
+  await Promise.all(weekDates.map((date) => ensureTripsForDate(date)));
+  ensuredDriverWeeks.set(weekStart, Date.now() + DRIVER_WEEK_ENSURE_TTL_MS);
+}
+
+function invalidateDriverWeekEnsureCache() {
+  ensuredDriverWeeks.clear();
 }
 
 function computeDesiredWeekStart(now = new Date()) {
@@ -684,30 +723,29 @@ async function listDriverWeekView(options = {}) {
   const selectedWeek = weekStart || activeWeekStart;
   const { weekEnd } = getWeekRange(selectedWeek);
 
-  const monday = dateFromIso(selectedWeek);
-  const weekDates = [];
-  for (let i = 0; i < 5; i += 1) {
-    const date = new Date(monday);
-    date.setDate(monday.getDate() + i);
-    weekDates.push(formatDate(date));
+  if (selectedWeek === activeWeekStart) {
+    await ensureDriverWeekTrips(selectedWeek);
   }
-  await Promise.all(weekDates.map((date) => ensureTripsForDate(date)));
 
-  let tripsQuery = supabase
-    .from('trips_v2')
-    .select('id, date, location, bus, time, booked')
-    .gte('date', selectedWeek)
-    .lte('date', weekEnd)
-    .order('date', { ascending: true })
-    .order('bus', { ascending: true })
-    .order('time', { ascending: true });
+  const buildTripsQuery = () => {
+    let query = supabase
+      .from('trips_v2')
+      .select('id, date, location, bus, time, booked')
+      .gte('date', selectedWeek)
+      .lte('date', weekEnd)
+      .order('date', { ascending: true })
+      .order('bus', { ascending: true })
+      .order('time', { ascending: true });
 
-  if (location) {
-    tripsQuery = tripsQuery.eq('location', location);
-  }
-  if (bus) {
-    tripsQuery = tripsQuery.eq('bus', bus);
-  }
+    if (location) {
+      query = query.eq('location', location);
+    }
+    if (bus) {
+      query = query.eq('bus', bus);
+    }
+
+    return query;
+  };
 
   const allWeekBookingsQuery = supabase
     .from('bookings_v2')
@@ -721,7 +759,7 @@ async function listDriverWeekView(options = {}) {
   }
 
   const [tripsResult, allWeekBookingsResult] = await Promise.all([
-    tripsQuery,
+    buildTripsQuery(),
     allWeekBookingsQuery
   ]);
 
@@ -731,6 +769,16 @@ async function listDriverWeekView(options = {}) {
 
   if (allWeekBookingsResult.error) {
     throw allWeekBookingsResult.error;
+  }
+
+  let tripsData = tripsResult.data || [];
+  if (!tripsData.length) {
+    await ensureDriverWeekTrips(selectedWeek);
+    const retryTripsResult = await buildTripsQuery();
+    if (retryTripsResult.error) {
+      throw retryTripsResult.error;
+    }
+    tripsData = retryTripsResult.data || [];
   }
 
   const studentNames = Array.from(
@@ -782,17 +830,14 @@ async function listDriverWeekView(options = {}) {
     bookingsByTripId.set(trip.id, current);
   });
 
-  const trips = tripsResult.data || [];
+  const trips = tripsData;
   const tripIdByKey = new Map(
     trips.map((trip) => [`${trip.date}|${trip.location}|${trip.bus}|${trip.time}`, trip.id])
   );
 
+  const weekDates = buildWeekDates(selectedWeek);
   const dayMap = new Map();
-  for (let i = 0; i < 5; i += 1) {
-    const date = new Date(monday);
-    date.setDate(monday.getDate() + i);
-    dayMap.set(formatDate(date), []);
-  }
+  weekDates.forEach((date) => dayMap.set(date, []));
 
   const mergePairedStudents = Boolean(location);
 
@@ -983,5 +1028,6 @@ module.exports = {
   deleteBookingById,
   listStudentWeekBookings,
   replaceStudentDayBookings,
-  listDriverWeekView
+  listDriverWeekView,
+  invalidateDriverWeekEnsureCache
 };
