@@ -205,12 +205,15 @@ function ensureXlsxLoaded() {
 }
 
 async function fetchDriverPayload({ bus, location, weekStart }, options = {}) {
-  const { forceRefresh = false } = options;
+  const { forceRefresh = false, includeWeeks = false } = options;
   const accessToken = token();
   const endpoint = isDriverMode ? '/api/driver/view' : '/api/admin/driver-view';
   const query = new URLSearchParams();
   query.set('bus', bus);
   query.set('location', location);
+  if (includeWeeks) {
+    query.set('includeWeeks', '1');
+  }
   if (weekStart) {
     query.set('weekStart', weekStart);
   }
@@ -295,7 +298,7 @@ async function loadHistoryModalData(options = {}) {
   const requestId = ++historyLoadRequestId;
   const { forceRefresh = false } = options;
   setHistoryMessage('Loading schedule history...', 'success');
-  const payload = await fetchDriverPayload(historyState, { forceRefresh });
+  const payload = await fetchDriverPayload(historyState, { forceRefresh, includeWeeks: true });
 
   if (requestId !== historyLoadRequestId) {
     return;
@@ -486,7 +489,7 @@ async function loadDriverView(options = {}) {
     location: activeLocation,
     bus: activeBus,
     weekStart: selectedWeekStart
-  }, { forceRefresh });
+  }, { forceRefresh, includeWeeks: false });
 
   if (requestId !== mainLoadRequestId) {
     return;
@@ -494,7 +497,9 @@ async function loadDriverView(options = {}) {
 
   lastPayload = payload;
   selectedWeekStart = payload.weekStart || selectedWeekStart;
-  availableWeeks = payload.availableWeeks || availableWeeks;
+  if (Array.isArray(payload.availableWeeks) && payload.availableWeeks.length) {
+    availableWeeks = payload.availableWeeks;
+  }
 
   updateTabState();
   residenceFilter.value = activeLocation;

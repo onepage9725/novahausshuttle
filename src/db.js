@@ -678,11 +678,9 @@ async function listDriverWeekView(options = {}) {
   const location = options.location || null;
   const bus = options.bus || null;
   const weekStart = options.weekStart || null;
+  const includeAvailableWeeks = Boolean(options.includeAvailableWeeks);
 
-  const [activeWeekStart, availableWeeks] = await Promise.all([
-    getActiveWeekStart(),
-    listAvailableBookingWeeks()
-  ]);
+  const activeWeekStart = await getActiveWeekStart();
   const selectedWeek = weekStart || activeWeekStart;
   const { weekEnd } = getWeekRange(selectedWeek);
 
@@ -839,7 +837,7 @@ async function listDriverWeekView(options = {}) {
     location: location || 'ALL',
     bus: bus || 'ALL',
     activeWeekStart,
-    availableWeeks,
+    availableWeeks: includeAvailableWeeks ? await listAvailableBookingWeeks() : undefined,
     weekStart: selectedWeek,
     weekEnd,
     days: Array.from(dayMap.entries()).map(([date, slots]) => ({

@@ -31,9 +31,11 @@ const DRIVER_PASSCODE_B = process.env.DRIVER_PASSCODE_B || 'Nova123123@@';
 const ADMIN_SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 const DRIVER_SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 const WEEK_TRIPS_CACHE_TTL_MS = 15 * 1000;
+const DRIVER_VIEW_CACHE_TTL_MS = 15 * 1000;
 const adminSessions = new Map();
 const driverSessions = new Map();
 const weekTripsCache = new Map();
+const driverViewCache = new Map();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -140,6 +142,32 @@ function setCachedWeekTrips(cacheKey, payload) {
 
 function invalidateWeekTripsCache() {
   weekTripsCache.clear();
+  driverViewCache.clear();
+}
+
+function buildDriverViewCacheKey({ endpoint, location, bus, weekStart, includeWeeks }) {
+  return [endpoint, location || 'ALL', bus || 'ALL', weekStart || '', includeWeeks ? '1' : '0'].join('|');
+}
+
+function getCachedDriverView(cacheKey) {
+  const entry = driverViewCache.get(cacheKey);
+  if (!entry) {
+    return null;
+  }
+
+  if (Date.now() > entry.expiresAt) {
+    driverViewCache.delete(cacheKey);
+    return null;
+  }
+
+  return entry.payload;
+}
+
+function setCachedDriverView(cacheKey, payload) {
+  driverViewCache.set(cacheKey, {
+    payload,
+    expiresAt: Date.now() + DRIVER_VIEW_CACHE_TTL_MS
+  });
 }
 
 app.post('/api/admin/login', (req, res) => {
@@ -289,6 +317,7 @@ app.get('/api/admin/driver-view', requireAdmin, async (req, res) => {
   const location = locationRaw && locationRaw !== 'ALL' ? locationRaw : '';
   const bus = req.query.bus ? String(req.query.bus).toUpperCase() : '';
   const weekStart = req.query.weekStart ? String(req.query.weekStart) : '';
+  const includeWeeks = String(req.query.includeWeeks || '') === '1';
 
   if (location && !VALID_LOCATIONS.has(location)) {
     return res.status(400).json({ error: 'Invalid location filter.' });
@@ -302,12 +331,27 @@ app.get('/api/admin/driver-view', requireAdmin, async (req, res) => {
     return res.status(400).json({ error: 'Invalid weekStart date format. Use YYYY-MM-DD.' });
   }
 
+  const cacheKey = buildDriverViewCacheKey({
+    endpoint: 'admin',
+    location,
+    bus,
+    weekStart,
+    includeWeeks
+  });
+
+  const cachedPayload = getCachedDriverView(cacheKey);
+  if (cachedPayload) {
+    return res.json(cachedPayload);
+  }
+
   try {
     const payload = await listDriverWeekView({
       location: location || null,
       bus: bus || null,
-      weekStart: weekStart || null
+      weekStart: weekStart || null,
+      includeAvailableWeeks: includeWeeks
     });
+    setCachedDriverView(cacheKey, payload);
     return res.json(payload);
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -319,6 +363,7 @@ app.get('/api/driver/view', requireDriver, async (req, res) => {
   const location = locationRaw && locationRaw !== 'ALL' ? locationRaw : '';
   const bus = req.query.bus ? String(req.query.bus).toUpperCase() : 'A';
   const weekStart = req.query.weekStart ? String(req.query.weekStart) : '';
+  const includeWeeks = String(req.query.includeWeeks || '') === '1';
 
   if (location && !VALID_LOCATIONS.has(location)) {
     return res.status(400).json({ error: 'Invalid location filter.' });
@@ -332,13 +377,27 @@ app.get('/api/driver/view', requireDriver, async (req, res) => {
     return res.status(400).json({ error: 'Invalid weekStart date format. Use YYYY-MM-DD.' });
   }
 
+  const cacheKey = buildDriverViewCacheKey({
+    endpoint: 'driver',
+    location,
+    bus,
+    weekStart,
+    includeWeeks
+  });
+
+  const cachedPayload = getCachedDriverView(cacheKey);
+  if (cachedPayload) {
+    return res.json(cachedPayload);
+  }
+
   try {
     const payload = await listDriverWeekView({
       location: location || null,
       bus,
-      weekStart: weekStart || null
+      weekStart: weekStart || null,
+      includeAvailableWeeks: includeWeeks
     });
-
+    setCachedDriverView(cacheKey, payload);
     return res.json(payload);
   } catch (error) {
     return res.status(500).json({ error: error.message });
