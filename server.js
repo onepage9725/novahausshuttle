@@ -170,6 +170,20 @@ function setCachedDriverView(cacheKey, payload) {
   });
 }
 
+function logDriverViewTiming({ endpoint, source, bus, location, includeWeeks, weekStart, startedAt }) {
+  const durationMs = Date.now() - startedAt;
+  console.info(
+    '[driver-view]',
+    `endpoint=${endpoint}`,
+    `source=${source}`,
+    `bus=${bus || 'ALL'}`,
+    `location=${location || 'ALL'}`,
+    `includeWeeks=${includeWeeks ? '1' : '0'}`,
+    `weekStart=${weekStart || '-'}`,
+    `durationMs=${durationMs}`
+  );
+}
+
 app.post('/api/admin/login', (req, res) => {
   const passcode = String(req.body.passcode || '');
   if (passcode !== ADMIN_PASSCODE) {
@@ -313,6 +327,7 @@ app.get('/api/admin/bookings', requireAdmin, async (req, res) => {
 });
 
 app.get('/api/admin/driver-view', requireAdmin, async (req, res) => {
+  const startedAt = Date.now();
   const locationRaw = req.query.location ? String(req.query.location).toUpperCase() : '';
   const location = locationRaw && locationRaw !== 'ALL' ? locationRaw : '';
   const bus = req.query.bus ? String(req.query.bus).toUpperCase() : '';
@@ -341,6 +356,15 @@ app.get('/api/admin/driver-view', requireAdmin, async (req, res) => {
 
   const cachedPayload = getCachedDriverView(cacheKey);
   if (cachedPayload) {
+    logDriverViewTiming({
+      endpoint: 'admin',
+      source: 'cache',
+      bus,
+      location,
+      includeWeeks,
+      weekStart,
+      startedAt
+    });
     return res.json(cachedPayload);
   }
 
@@ -352,13 +376,32 @@ app.get('/api/admin/driver-view', requireAdmin, async (req, res) => {
       includeAvailableWeeks: includeWeeks
     });
     setCachedDriverView(cacheKey, payload);
+    logDriverViewTiming({
+      endpoint: 'admin',
+      source: 'db',
+      bus,
+      location,
+      includeWeeks,
+      weekStart,
+      startedAt
+    });
     return res.json(payload);
   } catch (error) {
+    logDriverViewTiming({
+      endpoint: 'admin',
+      source: 'error',
+      bus,
+      location,
+      includeWeeks,
+      weekStart,
+      startedAt
+    });
     return res.status(500).json({ error: error.message });
   }
 });
 
 app.get('/api/driver/view', requireDriver, async (req, res) => {
+  const startedAt = Date.now();
   const locationRaw = req.query.location ? String(req.query.location).toUpperCase() : '';
   const location = locationRaw && locationRaw !== 'ALL' ? locationRaw : '';
   const bus = req.query.bus ? String(req.query.bus).toUpperCase() : 'A';
@@ -387,6 +430,15 @@ app.get('/api/driver/view', requireDriver, async (req, res) => {
 
   const cachedPayload = getCachedDriverView(cacheKey);
   if (cachedPayload) {
+    logDriverViewTiming({
+      endpoint: 'driver',
+      source: 'cache',
+      bus,
+      location,
+      includeWeeks,
+      weekStart,
+      startedAt
+    });
     return res.json(cachedPayload);
   }
 
@@ -398,8 +450,26 @@ app.get('/api/driver/view', requireDriver, async (req, res) => {
       includeAvailableWeeks: includeWeeks
     });
     setCachedDriverView(cacheKey, payload);
+    logDriverViewTiming({
+      endpoint: 'driver',
+      source: 'db',
+      bus,
+      location,
+      includeWeeks,
+      weekStart,
+      startedAt
+    });
     return res.json(payload);
   } catch (error) {
+    logDriverViewTiming({
+      endpoint: 'driver',
+      source: 'error',
+      bus,
+      location,
+      includeWeeks,
+      weekStart,
+      startedAt
+    });
     return res.status(500).json({ error: error.message });
   }
 });
