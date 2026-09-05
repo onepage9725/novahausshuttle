@@ -679,17 +679,21 @@ async function listDriverWeekView(options = {}) {
   const bus = options.bus || null;
   const weekStart = options.weekStart || null;
 
-  const activeWeekStart = await getActiveWeekStart();
-  const availableWeeks = await listAvailableBookingWeeks();
+  const [activeWeekStart, availableWeeks] = await Promise.all([
+    getActiveWeekStart(),
+    listAvailableBookingWeeks()
+  ]);
   const selectedWeek = weekStart || activeWeekStart;
   const { weekEnd } = getWeekRange(selectedWeek);
 
   const monday = dateFromIso(selectedWeek);
+  const weekDates = [];
   for (let i = 0; i < 5; i += 1) {
     const date = new Date(monday);
     date.setDate(monday.getDate() + i);
-    await ensureTripsForDate(formatDate(date));
+    weekDates.push(formatDate(date));
   }
+  await Promise.all(weekDates.map((date) => ensureTripsForDate(date)));
 
   let tripsQuery = supabase
     .from('trips_v2')
@@ -707,35 +711,61 @@ async function listDriverWeekView(options = {}) {
     tripsQuery = tripsQuery.eq('bus', bus);
   }
 
-  const tripsResult = await tripsQuery;
-
-  if (tripsResult.error) {
-    throw tripsResult.error;
-  }
-
-  const allWeekBookingsResult = await supabase
+  const allWeekBookingsQuery = supabase
     .from('bookings_v2')
     .select('id, student_name, created_at, trips_v2!inner(id, date, location, bus, time)')
     .gte('trips_v2.date', selectedWeek)
     .lte('trips_v2.date', weekEnd)
     .order('created_at', { ascending: true });
 
+  if (bus) {
+    allWeekBookingsQuery.eq('trips_v2.bus', bus);
+  }
+
+  const [tripsResult, allWeekBookingsResult] = await Promise.all([
+    tripsQuery,
+    allWeekBookingsQuery
+  ]);
+
+  if (tripsResult.error) {
+    throw tripsResult.error;
+  }
+
   if (allWeekBookingsResult.error) {
     throw allWeekBookingsResult.error;
   }
 
-  const studentsResult = await supabase.from('students').select('full_name, contact_number');
-  if (studentsResult.error) {
-    const mapped = mapStudentsSchemaError(studentsResult.error);
-    if (mapped) {
-      throw mapped;
-    }
-    throw studentsResult.error;
-  }
-
-  const studentsByName = new Map(
-    (studentsResult.data || []).map((row) => [row.full_name, row.contact_number || ''])
+  const studentNames = Array.from(
+    new Set(
+      (allWeekBookingsResult.data || [])
+        .map((row) => row.student_name || '')
+        .filter(Boolean)
+    )
   );
+
+  const studentsByName = new Map();
+  if (studentNames.length) {
+    const chunkSize = 200;
+    for (let i = 0; i < studentNames.length; i += chunkSize) {
+      const chunk = studentNames.slice(i, i + chunkSize);
+      const studentsResult = await supabase
+        .from('students')
+        .select('full_name, contact_number')
+        .in('full_name', chunk);
+
+      if (studentsResult.error) {
+        const mapped = mapStudentsSchemaError(studentsResult.error);
+        if (mapped) {
+          throw mapped;
+        }
+        throw studentsResult.error;
+      }
+
+      (studentsResult.data || []).forEach((row) => {
+        studentsByName.set(row.full_name, row.contact_number || '');
+      });
+    }
+  }
 
   const bookingsByTripId = new Map();
   (allWeekBookingsResult.data || []).forEach((row) => {

@@ -22,6 +22,7 @@ const logoutBtn = document.getElementById('logoutBtn');
 const ADMIN_TOKEN_KEY = 'novashuttle_admin_token';
 const DRIVER_TOKEN_KEY = 'novashuttle_driver_token';
 const isDriverMode = Boolean(window.NOVA_DRIVER_MODE);
+const XLSX_CDN_URL = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
 
 let activeLocation = 'ALL';
 let activeBus = 'A';
@@ -30,6 +31,7 @@ let lastPayload = null;
 let availableWeeks = [];
 const driverPayloadCache = new Map();
 const driverPayloadPending = new Map();
+let xlsxLoadPromise = null;
 let mainLoadRequestId = 0;
 let historyLoadRequestId = 0;
 
@@ -170,6 +172,38 @@ function buildDriverPayloadCacheKey(endpoint, bus, location, weekStart) {
   return `${endpoint}|${bus}|${location}|${weekStart || ''}`;
 }
 
+function ensureXlsxLoaded() {
+  if (window.XLSX) {
+    return Promise.resolve(window.XLSX);
+  }
+
+  if (xlsxLoadPromise) {
+    return xlsxLoadPromise;
+  }
+
+  xlsxLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = XLSX_CDN_URL;
+    script.async = true;
+    script.onload = () => {
+      if (window.XLSX) {
+        resolve(window.XLSX);
+        return;
+      }
+      reject(new Error('Excel exporter was loaded but is unavailable.'));
+    };
+    script.onerror = () => {
+      reject(new Error('Unable to load Excel exporter. Please check your connection and retry.'));
+    };
+    document.head.appendChild(script);
+  }).catch((error) => {
+    xlsxLoadPromise = null;
+    throw error;
+  });
+
+  return xlsxLoadPromise;
+}
+
 async function fetchDriverPayload({ bus, location, weekStart }, options = {}) {
   const { forceRefresh = false } = options;
   const accessToken = token();
@@ -221,6 +255,7 @@ function renderHistoryDays(payload) {
   }
 
   historyDaysContainer.innerHTML = '';
+  const fragment = document.createDocumentFragment();
 
   (payload.days || []).forEach((day) => {
     const card = document.createElement('section');
@@ -243,15 +278,17 @@ function renderHistoryDays(payload) {
       });
     }
 
-    historyDaysContainer.appendChild(card);
+    fragment.appendChild(card);
   });
 
   if (!payload.days || !payload.days.length) {
     const empty = document.createElement('section');
     empty.className = 'mini-card';
     empty.textContent = 'No booking slots for this week.';
-    historyDaysContainer.appendChild(empty);
+    fragment.appendChild(empty);
   }
+
+  historyDaysContainer.appendChild(fragment);
 }
 
 async function loadHistoryModalData(options = {}) {
@@ -402,6 +439,8 @@ function renderDays(payload) {
     return;
   }
 
+  const fragment = document.createDocumentFragment();
+
   payload.days.forEach((day) => {
     const card = document.createElement('section');
     card.className = 'card';
@@ -423,8 +462,10 @@ function renderDays(payload) {
       });
     }
 
-    daysContainer.appendChild(card);
+    fragment.appendChild(card);
   });
+
+  daysContainer.appendChild(fragment);
 }
 
 async function loadDriverView(options = {}) {
@@ -533,26 +574,21 @@ async function downloadSchedule() {
     return;
   }
 
-  if (!window.XLSX) {
-    setMessage('Excel exporter is not ready. Please refresh and try again.', 'error');
-    return;
-  }
-
   setMessage('Preparing Excel file...', 'success');
 
-  const workbook = window.XLSX.utils.book_new();
-
   try {
+    const XLSX = await ensureXlsxLoaded();
+    const workbook = XLSX.utils.book_new();
     const payloadA = await fetchExportPayload('A');
     const payloadB = await fetchExportPayload('B');
     const rowsA = flattenRows(payloadA);
     const rowsB = flattenRows(payloadB);
 
-    window.XLSX.utils.book_append_sheet(workbook, window.XLSX.utils.json_to_sheet(rowsA), 'Bus A');
-    window.XLSX.utils.book_append_sheet(workbook, window.XLSX.utils.json_to_sheet(rowsB), 'Bus B');
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rowsA), 'Bus A');
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rowsB), 'Bus B');
 
     const weekTag = (lastPayload.weekStart || '').replace(/[^0-9-]/g, '') || 'week';
-    window.XLSX.writeFile(workbook, `driver-view-week-${weekTag}.xlsx`);
+    XLSX.writeFile(workbook, `driver-view-week-${weekTag}.xlsx`);
     setMessage('Excel downloaded.', 'success');
   } catch (error) {
     setMessage(error.message || 'Unable to export Excel.', 'error');
