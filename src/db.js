@@ -872,7 +872,8 @@ async function listDriverWeekView(options = {}) {
       location: trip.location,
       bus: trip.bus,
       direction: getTripDirection(trip.location, trip.bus, trip.time),
-      pax: Number(trip.booked) || mergedStudents.length,
+      // Keep the badge count consistent with the rows rendered in the slot details.
+      pax: mergedStudents.length,
       students: mergedStudents
     });
     dayMap.set(trip.date, slots);
