@@ -30,7 +30,6 @@ const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE || 'NovaAdmin123@';
 const DRIVER_PASSCODE_A = process.env.DRIVER_PASSCODE_A || 'Nova123123@';
 const DRIVER_PASSCODE_B = process.env.DRIVER_PASSCODE_B || 'Nova123123@@';
 const ADMIN_SESSION_TTL_MS = 8 * 60 * 60 * 1000;
-const DRIVER_SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 const WEEK_TRIPS_CACHE_TTL_MS = 15 * 1000;
 const DRIVER_VIEW_CACHE_TTL_MS = 15 * 1000;
 const adminSessions = new Map();
@@ -76,9 +75,8 @@ function createAdminToken() {
 
 function createDriverToken(bus) {
   const token = crypto.randomBytes(24).toString('hex');
-  const expiresAt = Date.now() + DRIVER_SESSION_TTL_MS;
-  driverSessions.set(token, { expiresAt, bus });
-  return { token, expiresAt, bus };
+  driverSessions.set(token, { bus });
+  return { token, expiresAt: null, bus };
 }
 
 function requireAdmin(req, res, next) {
@@ -107,9 +105,9 @@ function requireDriver(req, res, next) {
   }
 
   const session = driverSessions.get(token);
-  if (!session || !session.expiresAt || Date.now() > session.expiresAt) {
+  if (!session) {
     driverSessions.delete(token);
-    return res.status(401).json({ error: 'Driver session expired. Please login again.' });
+    return res.status(401).json({ error: 'Unauthorized driver access.' });
   }
 
   req.driverSession = session;
